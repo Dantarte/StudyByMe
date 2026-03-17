@@ -58,4 +58,185 @@
     <h2 style="font-weight: 200; margin-top: 40px;">VOCAB <span style="color:var(--blue)">PRO V25</span></h2>
     
     <div class="card">
-        <div style="font-size: 0.8rem; color: #5
+        <div style="font-size: 0.8rem; color: #5c6370;">方案 A: 文件导入 (PDF / Word)</div>
+        <button class="upload-btn" onclick="triggerFile('pdf')">上传 PDF 单词本</button>
+        <button class="upload-btn" style="background:#fff; margin-top: 10px;" onclick="triggerFile('doc')">上传 Word (.docx)</button>
+    </div>
+
+    <div class="card">
+        <div style="font-size: 0.8rem; color: #5c6370;">方案 B: 粘贴文本 (最稳妥)</div>
+        <textarea id="raw-text" placeholder="Word (换行) Definition..."></textarea>
+        <button class="upload-btn" style="background:var(--green); border:none;" onclick="processText()">粘贴并导入</button>
+    </div>
+
+    <button class="nav-item" style="margin-top:20px;" onclick="useCache()">使用上次缓存继续学习</button>
+    <div id="log" style="font-size: 0.65rem; color: var(--blue); margin-top: 10px;"></div>
+</div>
+
+<div id="app">
+    <div class="progress"><div id="bar-fill"></div></div>
+    <div id="word-box">
+        <div id="word-text">---</div>
+        <div id="hint-text">Waiting</div>
+    </div>
+    <div class="opts-grid" id="btns"></div>
+    <input type="text" id="spell-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
+</div>
+
+<div id="bottom-nav">
+    <button class="nav-item active" id="n1" onclick="jump(1)">识别</button>
+    <button class="nav-item" id="n2" onclick="jump(2)">回想</button>
+    <button class="nav-item" id="n3" onclick="jump(3)">拼写</button>
+    <button class="nav-item" onclick="archiveCurrent()">归档</button>
+    <button class="nav-item" onclick="resetAll()" style="color:var(--red)">重置</button>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    let wordBank = JSON.parse(localStorage.getItem('v25_data')) || [];
+    let circle = 1, curIdx = 0, errors = 0, locked = false;
+
+    // 1. 文件触发器
+    function triggerFile(type) {
+        const i = document.createElement('input'); i.type='file';
+        i.accept = (type==='pdf') ? '.pdf' : '.docx';
+        i.onchange = e => { if(type==='pdf') parsePDF(e.target.files[0]); else parseDOC(e.target.files[0]); };
+        i.click();
+    }
+
+    // 2. PDF 解析 (增强版)
+    async function parsePDF(file) {
+        showLog("解析 PDF 中...");
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(buffer).promise;
+        let allLines = [];
+        for(let i=1; i<=pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            let yMap = {};
+            content.items.forEach(it => {
+                let y = Math.round(it.transform[5]);
+                if(!yMap[y]) yMap[y] = [];
+                yMap[y].push({x: it.transform[4], s: it.str});
+            });
+            Object.keys(yMap).sort((a,b)=>b-a).forEach(y => {
+                let s = yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim();
+                if(s && !s.includes('--- PAGE')) allLines.push(s);
+            });
+        }
+        buildBank(allLines);
+    }
+
+    // 3. Word 解析 (使用 Mammoth)
+    async function parseDOC(file) {
+        showLog("解析 Word 中...");
+        const buffer = await file.arrayBuffer();
+        mammoth.extractRawText({arrayBuffer: buffer}).then(res => {
+            const lines = res.value.split('\n').map(l=>l.trim()).filter(l=>l);
+            buildBank(lines);
+        });
+    }
+
+    // 4. 粘贴解析
+    function processText() {
+        const lines = document.getElementById('raw-text').value.split('\n').map(l=>l.trim()).filter(l=>l);
+        buildBank(lines);
+    }
+
+    function buildBank(lines) {
+        let final = [];
+        for(let i=0; i<lines.length; i+=2) { if(lines[i+1]) final.push({w: lines[i], d: lines[i+1], arc: false}); }
+        wordBank = final;
+        localStorage.setItem('v25_data', JSON.stringify(wordBank));
+        showLog(`成功导入 ${wordBank.length} 个单词！`);
+        setTimeout(useCache, 800);
+    }
+
+    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display = 'none'; update(); } }
+    function showLog(m) { document.getElementById('log').innerText = m; }
+    function resetAll() { if(confirm("确定清空数据？")) { localStorage.clear(); location.reload(); } }
+
+    // 学习逻辑
+    function jump(n) { circle = n; curIdx = 0; errors = 0; update(); }
+    function update() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
+        if(curIdx >= active.length) { checkCycle(); return; }
+
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        if(document.getElementById('n'+circle)) document.getElementById('n'+circle).classList.add('active');
+
+        const item = active[curIdx];
+        document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
+        document.getElementById('btns').style.display = 'none';
+        document.getElementById('spell-box').style.display = 'none';
+
+        if(circle === 1) {
+            document.getElementById('word-text').innerText = item.w;
+            document.getElementById('hint-text').innerText = "Circle 1: Identify";
+            document.getElementById('btns').style.display = 'grid';
+            renderOptions(item.d, 'd', active);
+        } else if(circle === 2) {
+            document.getElementById('word-text').innerText = item.d;
+            document.getElementById('hint-text').innerText = "Circle 2: Recall";
+            document.getElementById('btns').style.display = 'grid';
+            renderOptions(item.w, 'w', active);
+        } else {
+            document.getElementById('word-text').innerText = item.d;
+            document.getElementById('hint-text').innerText = "Circle 3: Spell it";
+            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
+        }
+    }
+
+    function renderOptions(correct, key, pool) {
+        let opts = [correct];
+        while(opts.length < 4 && opts.length < pool.length) {
+            let r = pool[Math.floor(Math.random() * pool.length)][key];
+            if(!opts.includes(r)) opts.push(r);
+        }
+        opts.sort(() => Math.random() - 0.5);
+        const area = document.getElementById('btns'); area.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
+            b.onclick = () => { if(!locked) { if(o === correct) { b.classList.add('correct'); move(true); } else move(false); } };
+            area.appendChild(b);
+        });
+    }
+
+    document.getElementById('spell-box').onkeydown = e => {
+        if(e.key === 'Enter' && !locked) {
+            let active = wordBank.filter(w => !w.arc);
+            if(e.target.value.trim().toLowerCase() === active[curIdx].w.toLowerCase()) move(true); else move(false);
+        }
+    };
+
+    function move(ok) {
+        locked = true; if(!ok) errors++;
+        setTimeout(() => {
+            if(ok) curIdx++; else alert("Ans: " + wordBank.filter(w => !w.arc)[curIdx].w);
+            locked = false; update();
+        }, 300);
+    }
+
+    function checkCycle() {
+        let active = wordBank.filter(w => !w.arc);
+        if(curIdx >= active.length && active.length > 0) {
+            if(errors === 0) { circle++; curIdx = 0; alert("Circle Mastered!"); } 
+            else { curIdx = 0; errors = 0; alert("Restarting..."); }
+        }
+        update();
+    }
+
+    function archiveCurrent() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active[curIdx]) {
+            wordBank.find(w => w.w === active[curIdx].w).arc = true;
+            localStorage.setItem('v25_data', JSON.stringify(wordBank));
+            update();
+        }
+    }
+
+    if(wordBank.length > 0) useCache();
+</script>
+</body>
+</html>
