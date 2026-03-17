@@ -6,224 +6,56 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Mastery V23</title>
+    <title>Mastery V25 - Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root { 
-            --bg: #1e2127; --app-bg: #282c34; --text: #abb2bf;
-            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #181a1f;
-            --safe-top: env(safe-area-inset-top);
+            --bg: #000; --app-bg: #1e1e1e; --text: #abb2bf;
+            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #333;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            background: var(--bg); color: var(--text); 
-            font-family: -apple-system, system-ui, sans-serif;
-            margin: 0; display: flex; flex-direction: column; height: 100vh;
-        }
-        
-        /* 1. 顶部状态与安装指引 */
-        #top-ui { 
-            padding-top: calc(var(--safe-top) + 10px);
-            padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
-            background: var(--app-bg); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .nav-grp { display: flex; gap: 8px; }
-        .btn-ui { background: #353b45; border: 1px solid var(--border); color: #abb2bf; padding: 10px 14px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; }
-        .btn-ui.active { border-color: var(--blue); color: var(--blue); background: rgba(97,175,239,0.1); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
 
-        /* 2. 核心练习区 - 弹性填充 */
-        #app { 
-            flex: 1; display: flex; flex-direction: column; 
-            padding: 20px; text-align: center; position: relative;
-        }
-        #word-area { 
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem; font-weight: 300; color: #fff; line-height: 1.3;
-            margin-bottom: 20px; padding: 0 10px;
-        }
-        .done-text { font-weight: 900 !important; color: var(--blue); text-shadow: 0 0 20px rgba(97, 175, 239, 0.4); }
+        /* 导入中心 */
+        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 25px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; }
+        .card { width: 100%; max-width: 450px; background: var(--app-bg); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
+        .upload-btn { background: var(--blue); color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+        textarea { width: 100%; height: 120px; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; margin-top: 10px; }
 
-        /* 3. 选项区域 - 增大触控面积 */
-        .opts-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+        /* 学习主界面 */
+        #app { flex: 1; display: flex; flex-direction: column; position: relative; padding: 20px; }
+        #word-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #word-text { font-size: 2.5rem; font-weight: 200; color: #fff; text-align: center; margin-bottom: 10px; line-height: 1.2; }
+        #hint-text { font-size: 0.75rem; color: #5c6370; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* 选项与交互 */
+        .opts-grid { display: grid; gap: 10px; margin-bottom: 20px; }
         button.choice { 
-            background: #2c313a; color: #abb2bf; border: 1px solid var(--border); 
+            background: var(--app-bg); color: var(--text); border: 1px solid var(--border); 
             padding: 20px 15px; font-size: 1rem; border-radius: 10px; text-align: left;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.1s;
+            transition: 0.1s;
         }
-        button.choice:active { transform: scale(0.98); background: #353b45; }
-        button.choice.correct { background: var(--green) !important; color: #fff !important; border-color: var(--green); }
+        button.choice.correct { background: var(--green) !important; color: #000 !important; border-color: var(--green); }
+        #spell-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.8rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 30px; }
 
-        /* 4. 输入框适配 */
-        #spell-box { 
-            background: rgba(0,0,0,0.2); border: none; border-bottom: 2px solid var(--blue); 
-            color: #fff; font-size: 1.8rem; text-align: center; width: 100%; 
-            padding: 15px 0; display: none; margin-bottom: 20px;
+        /* 底部操作 */
+        #bottom-nav { 
+            background: var(--app-bg); border-top: 1px solid var(--border);
+            padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+            padding-top: 10px; display: flex; justify-content: space-around;
         }
+        .nav-item { background: none; border: none; color: #5c6370; font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { color: var(--blue); }
 
-        /* 5. 底部控制 */
-        .control-panel { 
-            display: flex; justify-content: space-around; 
-            padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
-            border-top: 1px solid var(--border); padding-top: 15px;
-        }
-        .action-link { background:none; border:none; color: #5c6370; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; padding: 10px; }
-
-        /* 6. 进度条 */
-        .progress-rail { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #3e4451; }
-        #bar-fill { width: 0%; height: 100%; background: var(--blue); transition: 0.4s; }
-
-        /* 7. 导入与全屏弹窗 */
-        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        textarea { width: 100%; height: 250px; background: #181a1f; border: 1px solid #3e4451; color: #fff; padding: 15px; font-size: 0.9rem; border-radius: 8px; margin-bottom: 20px; }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; padding: 40px 20px; overflow-y: auto; }
-        .list-row { padding: 15px 0; border-bottom: 1px solid #3e4451; }
-        .list-row b { display: block; color: var(--blue); font-size: 1.1rem; margin-bottom: 5px; }
+        .progress { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #111; }
+        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
     </style>
 </head>
 <body>
 
 <div id="import-center">
-    <h2 style="font-weight: 200; margin-bottom: 5px;">VOCAB MASTER <span style="color:var(--blue)">V23</span></h2>
-    <p style="color:#5c6370; font-size:0.7rem; margin-bottom:20px;">粘贴 Pages 内容进行内化训练</p>
-    <textarea id="raw-text" placeholder="Word&#10;Definition&#10;Word..."></textarea>
-    <button class="btn-ui" style="width:100%; padding:18px; color:#fff; font-size:1rem; background:var(--blue); border:none;" onclick="processText()">确认导入并开始</button>
-    <button class="btn-ui" style="width:100%; margin-top:15px; border:none;" onclick="useCache()">使用上次缓存数据</button>
-</div>
-
-<div id="top-ui">
-    <div class="nav-grp">
-        <button class="btn-ui" onclick="jump(1)" id="c1">C1</button>
-        <button class="btn-ui" onclick="jump(2)" id="c2">C2</button>
-        <button class="btn-ui" onclick="jump(3)" id="c3">C3</button>
-    </div>
-    <div class="nav-grp">
-        <button class="btn-ui" onclick="toggleModal('list')">LIST</button>
-        <button class="btn-ui" onclick="toggleRandom()" id="rand-toggle">RND</button>
-    </div>
-</div>
-
-<div id="app">
-    <div class="progress-rail"><div id="bar-fill"></div></div>
-    <div id="word-area">READY</div>
-    <div id="hint" style="color:#5c6370; font-size:0.6rem; letter-spacing:1px; margin-bottom:10px;">三圈内化：100% 准确率要求</div>
+    <h2 style="font-weight: 200; margin-top: 40px;">VOCAB <span style="color:var(--blue)">PRO V25</span></h2>
     
-    <div class="opts-grid" id="btns"></div>
-    <input type="text" id="spell-box" placeholder="输入并确认" autocomplete="off" autocapitalize="off">
-    
-    <div class="control-panel">
-        <button class="action-link" onclick="skip()">SKIP</button>
-        <button class="action-link" onclick="archiveCurrent()">ARCHIVE</button>
-        <button class="action-link" onclick="toggleModal('arc')">📂</button>
-    </div>
-</div>
-
-<div id="list-modal" class="modal" onclick="toggleModal('list')"><div class="modal-box" onclick="event.stopPropagation()"><h3 style="color:var(--blue)">词库清单</h3><div id="list-content"></div></div></div>
-<div id="arc-modal" class="modal" onclick="toggleModal('arc')"><div class="modal-box" onclick="event.stopPropagation()"><h3 style="color:var(--red)">已归档</h3><div id="arc-content"></div></div></div>
-
-<script>
-    let wordBank = JSON.parse(localStorage.getItem('v23_data')) || [];
-    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
-
-    async function processText() {
-        const raw = document.getElementById('raw-text').value;
-        if(!raw.trim()) return;
-        const lines = raw.split('\n').map(l => l.trim()).filter(l => l && !l.includes('--- PAGE'));
-        let final = [];
-        for(let i=0; i<lines.length; i+=2) { if(lines[i+1]) final.push({w: lines[i], d: lines[i+1], arc: false}); }
-        wordBank = final;
-        localStorage.setItem('v23_data', JSON.stringify(wordBank));
-        document.getElementById('import-center').style.display = 'none';
-        update();
-    }
-
-    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display = 'none'; update(); } }
-    function jump(n) { circle = n; curIdx = 0; errors = 0; update(); }
-    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-toggle').classList.toggle('active', isRandom); shuffle(); curIdx = 0; update(); }
-    function shuffle() { if(isRandom) { let arc = wordBank.filter(w=>w.arc); let act = wordBank.filter(w=>!w.arc).sort(()=>Math.random()-0.5); wordBank = [...act, ...arc]; } }
-
-    function archiveCurrent() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active[curIdx]) {
-            wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v23_data', JSON.stringify(wordBank));
-            checkCycle();
-        }
-    }
-
-    function update() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active.length === 0) { document.getElementById('word-area').innerText = "DONE"; document.getElementById('word-area').classList.add('done-text'); return; }
-        if(curIdx >= active.length) { checkCycle(); return; }
-
-        document.querySelectorAll('.btn-ui').forEach(b => b.classList.remove('active'));
-        document.getElementById('c'+circle).classList.add('active');
-
-        const item = active[curIdx];
-        document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
-        document.getElementById('btns').style.display = 'none';
-        document.getElementById('spell-box').style.display = 'none';
-
-        if(circle === 1) {
-            document.getElementById('word-area').innerText = item.w;
-            document.getElementById('btns').style.display = 'grid';
-            renderOptions(item.d, 'd', active);
-        } else if(circle === 2) {
-            document.getElementById('word-area').innerText = item.d;
-            document.getElementById('btns').style.display = 'grid';
-            renderOptions(item.w, 'w', active);
-        } else {
-            document.getElementById('word-area').innerText = item.d;
-            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
-        }
-    }
-
-    function renderOptions(correct, key, pool) {
-        let opts = [correct];
-        while(opts.length < 4 && opts.length < pool.length) {
-            let r = pool[Math.floor(Math.random() * pool.length)][key];
-            if(!opts.includes(r)) opts.push(r);
-        }
-        opts.sort(() => Math.random() - 0.5);
-        const area = document.getElementById('btns'); area.innerHTML = '';
-        opts.forEach(o => {
-            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { if(!locked) { if(o === correct) { b.classList.add('correct'); move(true); } else move(false); } };
-            area.appendChild(b);
-        });
-    }
-
-    document.getElementById('spell-box').onkeydown = e => {
-        if(e.key === 'Enter' && !locked) {
-            let active = wordBank.filter(w => !w.arc);
-            if(e.target.value.trim().toLowerCase() === active[curIdx].w.toLowerCase()) { move(true); } else move(false);
-        }
-    };
-
-    function move(ok) {
-        locked = true; if(!ok) errors++;
-        setTimeout(() => {
-            if(ok) curIdx++; else { alert("Correct: " + wordBank.filter(w => !w.arc)[curIdx].w); if(circle===3){curIdx=0; errors=0;} }
-            locked = false; checkCycle();
-        }, 300);
-    }
-
-    function checkCycle() {
-        let active = wordBank.filter(w => !w.arc);
-        if(curIdx >= active.length && active.length > 0) {
-            if(errors === 0) { circle++; curIdx = 0; shuffle(); alert("Circle Mastered!"); }
-            else { curIdx = 0; errors = 0; alert("Retry Circle"); }
-        }
-        update();
-    }
-
-    window.toggleModal = t => {
-        const m = document.getElementById(t + '-modal');
-        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-        if(t === 'list') {
-            document.getElementById('list-content').innerHTML = wordBank.map(w => `<div class="list-row"><b>${w.w}</b><span>${w.d}</span></div>`).join('');
-        }
-    };
-</script>
-</body>
-</html>
+    <div class="card">
+        <div style="font-size: 0.8rem; color: #5
