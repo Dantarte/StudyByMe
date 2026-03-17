@@ -3,13 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <title>Mastery V35 - Final Lock</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <title>Mastery V36 - I Will Survive</title>
     <style>
         :root { 
             --bg: #000; --app-bg: #161b22; --text: #abb2bf;
@@ -21,10 +15,10 @@
         body { 
             background: var(--bg); color: var(--text); 
             font-family: -apple-system, system-ui, sans-serif; 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* 顶部导航 - 锁定 */
+        /* 顶部导航 */
         header {
             padding-top: calc(var(--safe-top) + 10px);
             padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
@@ -34,36 +28,28 @@
         }
         .icon-btn { font-size: 1.4rem; color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 
-        /* 侧边菜单面板 */
+        /* 侧边菜单 */
         .side-panel {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
             z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
         }
         .side-panel.active { display: flex; }
-        .panel-item { 
-            padding: 22px 0; border-bottom: 1px solid var(--border);
-            font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; align-items: center;
-        }
+        .panel-item { padding: 22px 0; border-bottom: 1px solid var(--border); font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; align-items: center; }
         .panel-item.active { color: var(--blue); font-weight: bold; }
-        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; }
 
-        /* 中间练习区 - 滚动受限 */
-        #main-scrollable { 
+        /* 练习核心区 - 保证绝对可见 */
+        #viewport { 
             flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
-            padding: 20px; position: relative; padding-bottom: 100px; /* 为页脚留出空间 */
+            padding: 20px; padding-bottom: 100px;
         }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 30px 0 10px; line-height: 1.2; }
-        #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
+        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 40px 0 10px; }
+        #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
 
-        .opts-grid { display: grid; gap: 12px; width: 100%; margin-bottom: 30px; }
-        button.choice { 
-            background: var(--app-bg); color: var(--text); border: 1px solid var(--border); 
-            padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left;
-        }
+        .opts-grid { display: grid; gap: 12px; width: 100%; margin-top: 30px; }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 22px 18px; font-size: 1rem; border-radius: 12px; text-align: left; }
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
-        #spell-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.8rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
-
-        /* 底部操作栏 - 绝对锁死 */
+        
+        /* 底部操作栏 - 绝对锁定 */
         footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: #0d1117; border-top: 1px solid var(--border);
@@ -71,4 +57,127 @@
             padding-top: 15px; display: flex; justify-content: center; gap: 60px;
             z-index: 300;
         }
-        .footer-btn { background: none; border: none
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; }
+
+        /* 导入中心 */
+        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
+        textarea { width: 100%; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 10px; font-size: 1rem; }
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; }
+        .btn-sec { background: #333; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 0.8rem; margin-top: 10px; text-align: center; width: 100%; display: block; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="icon-btn" onclick="openP('left')">☰</div>
+    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--blue);">MASTER V36</div>
+    <div class="icon-btn" onclick="openP('right')">📂</div>
+</header>
+
+<div id="import-center">
+    <div style="width:100%; max-width:400px; text-align:center;">
+        <h2 style="font-weight: 200; margin-bottom: 20px;">V36 <span style="color:var(--blue)">LOADER</span></h2>
+        <textarea id="raw-text" placeholder="粘贴内容..."></textarea>
+        <button class="btn-main" onclick="importPaste()">导入并开始</button>
+        <div style="display:flex; gap:10px;">
+            <label for="pdf-in" class="btn-sec">PDF 导入</label>
+            <label for="doc-in" class="btn-sec">Word 导入</label>
+        </div>
+        <input type="file" id="pdf-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
+        <input type="file" id="doc-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
+        <button class="btn-main" style="background:none; color:#5c6370; border:none;" onclick="useCache()">使用缓存</button>
+        <button onclick="localStorage.clear(); location.reload();" style="background:none; border:none; color:var(--red); font-size:0.6rem; margin-top:30px;">强制清空并重置 App</button>
+    </div>
+</div>
+
+<main id="viewport">
+    <div id="word-text">---</div>
+    <div id="hint-text">Waiting</div>
+    <div class="opts-grid" id="btns"></div>
+    <input type="text" id="spell-box" style="display:none; background:rgba(0,0,0,0.5); border:none; border-bottom:2px solid var(--blue); color:#fff; font-size:1.8rem; text-align:center; width:100%; padding:15px 0;">
+</main>
+
+<footer>
+    <button class="footer-btn" onclick="skip()">SKIP</button>
+    <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
+</footer>
+
+<div id="panel-left" class="side-panel" onclick="closeP('left')"><div onclick="event.stopPropagation()">
+    <div class="panel-item" onclick="setCircle(1)">识别 (C1)</div>
+    <div class="panel-item" onclick="setCircle(2)">回想 (C2)</div>
+    <div class="panel-item" onclick="setCircle(3)">拼写 (C3)</div>
+</div></div>
+
+<div id="panel-right" class="side-panel" onclick="closeP('right')"><div onclick="event.stopPropagation()">
+    <div class="panel-item" onclick="resetApp()" style="color:var(--red)">重置所有</div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+    let wordBank = JSON.parse(localStorage.getItem('v36_data')) || [];
+    let circle = 1, curIdx = 0, locked = false;
+
+    function openP(p) { document.getElementById('panel-'+p).style.display='flex'; }
+    function closeP(p) { document.getElementById('panel-'+p).style.display='none'; }
+    function setCircle(n) { circle = n; curIdx = 0; closeP('left'); update(); }
+
+    function importPaste() { build(document.getElementById('raw-text').value.split('\n').map(l=>l.trim()).filter(l=>l)); }
+    async function parsePDF(f) {
+        const buf = await f.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(buf).promise;
+        let lines = [];
+        for(let i=1; i<=pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            content.items.forEach(it => { if(it.str.trim()) lines.push(it.str.trim()); });
+        }
+        build(lines);
+    }
+    function parseDOC(f) { f.arrayBuffer().then(b => mammoth.extractRawText({arrayBuffer:b}).then(r => build(r.value.split('\n')))); }
+
+    function build(lines) {
+        let res = [];
+        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
+        wordBank = res; localStorage.setItem('v36_data', JSON.stringify(wordBank)); useCache();
+    }
+    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
+    
+    function update() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
+        const item = active[curIdx];
+        document.getElementById('word-text').innerText = (circle === 1) ? item.w : item.d;
+        document.getElementById('hint-text').innerText = `CIRCLE ${circle}`;
+        renderOpts(item, active);
+    }
+
+    function renderOpts(item, active) {
+        const area = document.getElementById('btns'); area.innerHTML = '';
+        if(circle === 3) return; // 拼写略
+        let corr = (circle === 1) ? item.d : item.w;
+        let opts = [corr];
+        while(opts.length < 4 && opts.length < active.length) {
+            let r = active[Math.floor(Math.random()*active.length)][(circle===1?'d':'w')];
+            if(!opts.includes(r)) opts.push(r);
+        }
+        opts.sort(()=>Math.random()-0.5).forEach(o => {
+            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
+            b.onclick = () => { if(o === corr) { curIdx++; update(); } else alert("Wrong!"); };
+            area.appendChild(b);
+        });
+    }
+
+    function skip() { curIdx++; update(); }
+    function archiveCurrent() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active[curIdx]) {
+            wordBank.find(w => w.w === active[curIdx].w).arc = true;
+            localStorage.setItem('v36_data', JSON.stringify(wordBank));
+            update();
+        }
+    }
+    window.onload = useCache;
+</script>
+</body>
+</html>
