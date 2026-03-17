@@ -97,3 +97,169 @@
     <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写 (Perfect)</div>
     <div class="panel-item" onclick="toggleRandom()">随机模式 <span id="rand-status" style="color:var(--blue)">OFF</span></div>
 </div>
+
+<div id="panel-right" class="side-panel">
+    <div class="close-btn" onclick="closePanel('right')">✕</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">LIBRARY</h3>
+    <div class="panel-item" onclick="showList('all')">全量清单 (List)</div>
+    <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
+    <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px;">重置数据 RESET</div>
+</div>
+
+<div id="import-center">
+    <div style="width:100%; max-width:400px; text-align:center;">
+        <h2 style="font-weight: 200; margin-bottom: 20px;">READY <span style="color:var(--blue)">MASTER</span></h2>
+        <textarea id="raw-text" placeholder="粘贴 Pages 内容在此..."></textarea>
+        <button class="btn-main" onclick="importPaste()">导入数据并开始</button>
+        <button class="btn-main" style="background:none; color:#5c6370; border:none;" onclick="useCache()">使用缓存继续学习</button>
+        <div style="font-size:0.6rem; color:#333; margin-top:10px;">V31 STABLE BUILD</div>
+    </div>
+</div>
+
+<main id="main-scroll">
+    <div class="progress"><div id="bar-fill"></div></div>
+    <div id="word-text">---</div>
+    <div id="hint-text">Waiting</div>
+    <div class="opts-grid" id="btns"></div>
+    <input type="text" id="spell-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
+</main>
+
+<footer>
+    <button class="footer-btn" onclick="skip()">SKIP</button>
+    <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
+</footer>
+
+<div id="modal-list" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:6000; flex-direction:column; padding:60px 20px; overflow-y:auto;">
+    <div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div>
+    <h2 id="list-title" style="color:var(--blue); font-weight:200;">LIST</h2>
+    <div id="list-content"></div>
+</div>
+
+<script>
+    // 强制错误捕获
+    window.onerror = function(msg, url, line) {
+        const dbg = document.getElementById('debug-box');
+        dbg.style.display = 'block';
+        dbg.innerText = `Error: ${msg} [Line: ${line}]`;
+    };
+
+    let wordBank = [];
+    try { wordBank = JSON.parse(localStorage.getItem('v31_data')) || []; } catch(e) {}
+
+    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
+
+    // UI
+    function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
+    function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
+    function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
+    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
+
+    // Logic
+    function importPaste() {
+        const raw = document.getElementById('raw-text').value.trim();
+        if(!raw) return alert("内容为空");
+        const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
+        let res = [];
+        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
+        wordBank = res;
+        localStorage.setItem('v31_data', JSON.stringify(wordBank));
+        useCache();
+    }
+
+    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
+    function resetApp() { if(confirm("确定清空？")) { localStorage.clear(); location.reload(); } }
+
+    function shuffle() {
+        let arc = wordBank.filter(w => w.arc);
+        let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5);
+        wordBank = [...act, ...arc];
+    }
+
+    function update() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
+        if(curIdx >= active.length) { checkEnd(); return; }
+
+        document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
+        if(document.getElementById('m'+circle)) document.getElementById('m'+circle).classList.add('active');
+
+        const item = active[curIdx];
+        document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
+        document.getElementById('btns').style.display = 'none';
+        document.getElementById('spell-box').style.display = 'none';
+        document.getElementById('main-scroll').scrollTop = 0;
+
+        if(circle === 1) {
+            document.getElementById('word-text').innerText = item.w;
+            document.getElementById('hint-text').innerText = "IDENTIFY (C1)";
+            document.getElementById('btns').style.display = 'grid';
+            renderOpts(item.d, 'd', active);
+        } else if(circle === 2) {
+            document.getElementById('word-text').innerText = item.d;
+            document.getElementById('hint-text').innerText = "RECALL (C2)";
+            document.getElementById('btns').style.display = 'grid';
+            renderOpts(item.w, 'w', active);
+        } else {
+            document.getElementById('word-text').innerText = item.d;
+            document.getElementById('hint-text').innerText = "SPELLING (C3)";
+            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
+        }
+    }
+
+    function renderOpts(corr, key, pool) {
+        let opts = [corr];
+        while(opts.length < 4 && opts.length < pool.length) {
+            let r = pool[Math.floor(Math.random()*pool.length)][key];
+            if(!opts.includes(r)) opts.push(r);
+        }
+        opts.sort(() => Math.random() - 0.5);
+        const area = document.getElementById('btns'); area.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
+            b.onclick = () => { if(!locked) { if(o === corr) { b.classList.add('correct'); move(true); } else move(false); } };
+            area.appendChild(b);
+        });
+    }
+
+    document.getElementById('spell-box').onkeydown = e => { if(e.key === 'Enter' && !locked) { if(e.target.value.trim().toLowerCase() === wordBank.filter(w=>!w.arc)[curIdx].w.toLowerCase()) move(true); else move(false); } };
+
+    function move(ok) {
+        locked = true; if(!ok) errors++;
+        setTimeout(() => {
+            if(ok) curIdx++; else alert("Correct: " + wordBank.filter(w => !w.arc)[curIdx].w);
+            locked = false; checkEnd();
+        }, 300);
+    }
+
+    function checkEnd() {
+        let active = wordBank.filter(w => !w.arc);
+        if(curIdx >= active.length && active.length > 0) {
+            if(errors === 0) { circle++; curIdx = 0; if(isRandom) shuffle(); alert("Circle Clear!"); }
+            else { curIdx = 0; errors = 0; alert("Restarting..."); }
+        }
+        update();
+    }
+
+    function skip() { if(!locked) { curIdx++; update(); } }
+    function archiveCurrent() {
+        let active = wordBank.filter(w => !w.arc);
+        if(active[curIdx]) {
+            wordBank.find(w => w.w === active[curIdx].w).arc = true;
+            localStorage.setItem('v31_data', JSON.stringify(wordBank));
+            update();
+        }
+    }
+
+    function showList(type) {
+        closePanel('right');
+        const m = document.getElementById('modal-list');
+        m.style.display = 'flex';
+        let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
+        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
+        document.getElementById('list-content').innerHTML = data.map(w => `<div style="padding:15px; border-bottom:1px solid #333"><b>${w.w}</b><br><small>${w.d}</small></div>`).join('');
+    }
+
+    window.onload = useCache;
+</script>
+</body>
+</html>
