@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>Vocab Mastery V34</title>
+    <title>Mastery V35 - Final Lock</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -21,20 +21,20 @@
         body { 
             background: var(--bg); color: var(--text); 
             font-family: -apple-system, system-ui, sans-serif; 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            margin: 0; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
         }
 
-        /* 顶部导航 */
+        /* 顶部导航 - 锁定 */
         header {
             padding-top: calc(var(--safe-top) + 10px);
             padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
             background: #0d1117; border-bottom: 1px solid var(--border);
-            flex-shrink: 0; z-index: 100;
+            flex-shrink: 0; z-index: 200;
         }
         .icon-btn { font-size: 1.4rem; color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 
-        /* 侧边面板 */
+        /* 侧边菜单面板 */
         .side-panel {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
             z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
@@ -47,10 +47,10 @@
         .panel-item.active { color: var(--blue); font-weight: bold; }
         .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; }
 
-        /* 核心练习区 */
-        #main-container { 
+        /* 中间练习区 - 滚动受限 */
+        #main-scrollable { 
             flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
-            padding: 20px; position: relative;
+            padding: 20px; position: relative; padding-bottom: 100px; /* 为页脚留出空间 */
         }
         #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 30px 0 10px; line-height: 1.2; }
         #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
@@ -63,231 +63,12 @@
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
         #spell-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.8rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
 
-        /* 底部固定操作栏 */
+        /* 底部操作栏 - 绝对锁死 */
         footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
             background: #0d1117; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 20px);
             padding-top: 15px; display: flex; justify-content: center; gap: 60px;
-            flex-shrink: 0; z-index: 100;
+            z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; }
-
-        /* 进度条 */
-        .progress { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #000; }
-        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
-
-        /* 导入中心 - 包含文件选项 */
-        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
-        textarea { width: 100%; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; }
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; }
-        .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; width: 100%; }
-        .btn-sec { background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 0.85rem; text-align: center; cursor: pointer; }
-        
-        .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
-        .list-row { padding: 15px 0; border-bottom: 1px solid var(--border); }
-    </style>
-</head>
-<body>
-
-<header>
-    <div class="icon-btn" onclick="openPanel('left')">☰</div>
-    <div style="font-size: 0.7rem; font-weight: bold; letter-spacing: 2px; color: var(--blue);">MASTER V34 PRO</div>
-    <div class="icon-btn" onclick="openPanel('right')">📂</div>
-</header>
-
-<div id="panel-left" class="side-panel">
-    <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">SET MODE</h3>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别识别</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想回想</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写</div>
-    <div class="panel-item" onclick="toggleRandom()">随机练习模式 <span id="rand-status" style="color:var(--blue)">OFF</span></div>
-</div>
-
-<div id="panel-right" class="side-panel">
-    <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">LIBRARY</h3>
-    <div class="panel-item" onclick="showList('all')">全量词库清单</div>
-    <div class="panel-item" onclick="showList('arc')">归档仓库查看</div>
-    <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px;">重置 RESET DATA</div>
-</div>
-
-<div id="import-center">
-    <div style="width:100%; max-width:400px; text-align:center;">
-        <h2 style="font-weight: 200; margin-bottom: 20px; color:#fff;">DATA <span style="color:var(--blue)">IMPORTER</span></h2>
-        <textarea id="raw-text" placeholder="方案 B: 粘贴文本在此..."></textarea>
-        <button class="btn-main" onclick="importPaste()">粘贴并导入</button>
-        
-        <div class="file-grid">
-            <label for="p-in" class="btn-sec">导入 PDF</label>
-            <label for="d-in" class="btn-sec">导入 Word</label>
-        </div>
-        <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
-        <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-
-        <button class="btn-main" style="background:none; color:#5c6370; margin-top:20px; border:none;" onclick="useCache()">使用上次缓存继续</button>
-    </div>
-</div>
-
-<main id="main-container">
-    <div class="progress"><div id="bar-fill"></div></div>
-    <div id="word-text">---</div>
-    <div id="hint-text">Waiting</div>
-    <div class="opts-grid" id="btns"></div>
-    <input type="text" id="spell-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
-</main>
-
-<footer>
-    <button class="footer-btn" onclick="skip()">SKIP</button>
-    <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
-</footer>
-
-<div id="modal-list" class="modal-full">
-    <div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div>
-    <h2 id="list-title" style="color:var(--blue); font-weight:200;">LIST</h2>
-    <div id="list-content"></div>
-</div>
-
-<script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-    let wordBank = JSON.parse(localStorage.getItem('v34_data')) || [];
-    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
-
-    // UI
-    function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
-    function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
-    function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
-    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
-
-    // DATA IMPORT
-    function importPaste() { const t = document.getElementById('raw-text').value.trim(); build(t.split('\n').map(l=>l.trim()).filter(l=>l)); }
-    
-    async function parsePDF(file) {
-        if(!file) return;
-        const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument(buf).promise;
-        let lines = [];
-        for(let i=1; i<=pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            let yMap = {};
-            content.items.forEach(it => {
-                let y = Math.round(it.transform[5]);
-                if(!yMap[y]) yMap[y] = [];
-                yMap[y].push({x: it.transform[4], s: it.str});
-            });
-            Object.keys(yMap).sort((a,b)=>b-a).forEach(y => {
-                lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim());
-            });
-        }
-        build(lines.filter(l=>l));
-    }
-
-    function parseDOC(file) {
-        if(!file) return;
-        file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim()))));
-    }
-
-    function build(lines) {
-        let res = [];
-        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
-        wordBank = res;
-        localStorage.setItem('v34_data', JSON.stringify(wordBank));
-        useCache();
-    }
-
-    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("确定清空数据？")) { localStorage.clear(); location.reload(); } }
-
-    function shuffle() {
-        let arc = wordBank.filter(w => w.arc);
-        let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5);
-        wordBank = [...act, ...arc];
-    }
-
-    function update() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
-        if(curIdx >= active.length) { checkEnd(); return; }
-
-        document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
-        if(document.getElementById('m'+circle)) document.getElementById('m'+circle).classList.add('active');
-
-        const item = active[curIdx];
-        document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
-        document.getElementById('btns').style.display = 'none';
-        document.getElementById('spell-box').style.display = 'none';
-        document.getElementById('main-container').scrollTop = 0;
-
-        if(circle === 1) {
-            document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "Circle 1: Identify";
-            document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.d, 'd', active);
-        } else if(circle === 2) {
-            document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "Circle 2: Recall";
-            document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.w, 'w', active);
-        } else {
-            document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "Circle 3: Spelling";
-            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
-        }
-    }
-
-    function renderOpts(corr, key, pool) {
-        let opts = [corr];
-        while(opts.length < 4 && opts.length < pool.length) {
-            let r = pool[Math.floor(Math.random()*pool.length)][key];
-            if(!opts.includes(r)) opts.push(r);
-        }
-        opts.sort(() => Math.random() - 0.5);
-        const area = document.getElementById('btns'); area.innerHTML = '';
-        opts.forEach(o => {
-            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { if(!locked) { if(o === corr) { b.classList.add('correct'); move(true); } else move(false); } };
-            area.appendChild(b);
-        });
-    }
-
-    document.getElementById('spell-box').onkeydown = e => { if(e.key === 'Enter' && !locked) { if(e.target.value.trim().toLowerCase() === wordBank.filter(w=>!w.arc)[curIdx].w.toLowerCase()) move(true); else move(false); } };
-
-    function move(ok) {
-        locked = true; if(!ok) errors++;
-        setTimeout(() => {
-            if(ok) curIdx++; else alert("Correct: " + wordBank.filter(w => !w.arc)[curIdx].w);
-            locked = false; checkEnd();
-        }, 300);
-    }
-
-    function checkEnd() {
-        let active = wordBank.filter(w => !w.arc);
-        if(curIdx >= active.length && active.length > 0) {
-            if(errors === 0) { circle++; curIdx = 0; if(isRandom) shuffle(); alert("Circle Clear!"); }
-            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
-        }
-        update();
-    }
-
-    function skip() { if(!locked) { curIdx++; update(); } }
-    function archiveCurrent() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active[curIdx]) {
-            wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v34_data', JSON.stringify(wordBank));
-            update();
-        }
-    }
-
-    function showList(type) {
-        closePanel('right');
-        document.getElementById('modal-list').style.display = 'flex';
-        let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
-        document.getElementById('list-content').innerHTML = data.map(w => `<div class="list-row"><b>${w.w}</b><span>${w.d}</span></div>`).join('');
-    }
-
-    window.onload = useCache;
-</script>
-</body>
-</html>
+        .footer-btn { background: none; border: none
