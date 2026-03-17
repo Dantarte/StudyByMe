@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mastery V32 - Pro Mobile</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Vocab Mastery V33</title>
     <style>
         :root { 
-            --bg: #000; --app-bg: #1e1e1e; --text: #abb2bf;
-            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #333;
+            --bg: #000; --app-bg: #161b22; --text: #abb2bf;
+            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #30363d;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -21,17 +25,17 @@
         /* 顶部导航 */
         header {
             padding-top: calc(var(--safe-top) + 10px);
-            padding-left: 20px; padding-right: 20px; padding-bottom: 10px;
+            padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
-            background: #111; border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
+            background: #0d1117; border-bottom: 1px solid var(--border);
+            flex-shrink: 0; z-index: 100;
         }
-        .icon-btn { font-size: 1.5rem; color: var(--text); padding: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+        .icon-btn { font-size: 1.4rem; color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 
         /* 侧边菜单面板 */
         .side-panel {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
-            z-index: 5000; display: none; flex-direction: column; padding: 60px 30px;
+            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
         }
         .side-panel.active { display: flex; }
         .panel-item { 
@@ -39,54 +43,57 @@
             font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; align-items: center;
         }
         .panel-item.active { color: var(--blue); font-weight: bold; }
-        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; }
+        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; }
 
-        /* 核心练习区 */
-        #main-scroll { 
-            flex: 1; overflow-y: auto; padding: 20px; 
-            display: flex; flex-direction: column; position: relative;
+        /* 核心练习区：确保 Skip 按钮不被挤走 */
+        #main-container { 
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
+            padding: 20px; position: relative;
         }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 40px 0 10px; line-height: 1.2; }
-        #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 2px; margin-bottom: 30px; text-transform: uppercase; }
+        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 30px 0 10px; line-height: 1.2; }
+        #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
 
         .opts-grid { display: grid; gap: 12px; width: 100%; margin-bottom: 30px; }
         button.choice { 
             background: var(--app-bg); color: var(--text); border: 1px solid var(--border); 
-            padding: 22px 18px; font-size: 1.05rem; border-radius: 12px; text-align: left;
+            padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left;
         }
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
         #spell-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.8rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
 
-        /* 底部固定控制台 */
+        /* 底部固定操作栏 */
         footer {
-            background: #111; border-top: 1px solid var(--border);
-            padding-bottom: calc(var(--safe-bottom) + 15px);
-            padding-top: 15px; display: flex; justify-content: center; gap: 50px;
-            flex-shrink: 0;
+            background: #0d1117; border-top: 1px solid var(--border);
+            padding-bottom: calc(var(--safe-bottom) + 20px);
+            padding-top: 15px; display: flex; justify-content: center; gap: 60px;
+            flex-shrink: 0; z-index: 100;
         }
         .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; }
 
         /* 进度条 */
-        .progress { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #000; }
+        .progress { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #000; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
 
-        /* 导入中心 */
-        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        textarea { width: 100%; height: 200px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; }
+        /* 导入界面 */
+        #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
+        textarea { width: 100%; height: 220px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 20px; }
         .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; margin-bottom: 15px; }
+        
+        .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
+        .list-row { padding: 15px 0; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
 <header>
     <div class="icon-btn" onclick="openPanel('left')">☰</div>
-    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--blue);">MASTER PRO V32</div>
+    <div style="font-size: 0.7rem; font-weight: bold; letter-spacing: 2px; color: var(--blue);">VOCAB MASTER V33</div>
     <div class="icon-btn" onclick="openPanel('right')">📂</div>
 </header>
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">SET MODE</h3>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">LEARNING MODE</h3>
     <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别 (Word→Def)</div>
     <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想 (Def→Word)</div>
     <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写 (Perfect)</div>
@@ -95,22 +102,22 @@
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">LIBRARY</h3>
-    <div class="panel-item" onclick="showList('all')">全量清单 (List)</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">RESOURCES</h3>
+    <div class="panel-item" onclick="showList('all')">全量清单 (Full List)</div>
     <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
     <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px;">重置数据 RESET</div>
 </div>
 
 <div id="import-center">
     <div style="width:100%; max-width:400px; text-align:center;">
-        <h2 style="font-weight: 200; margin-bottom: 20px;">V32 <span style="color:var(--blue)">ENGINE</span></h2>
-        <textarea id="raw-text" placeholder="粘贴 Pages 内容在此..."></textarea>
-        <button class="btn-main" onclick="importPaste()">导入数据并开始</button>
+        <h2 style="font-weight: 200; margin-bottom: 25px; color:#fff;">MASTER <span style="color:var(--blue)">ENGINE</span></h2>
+        <textarea id="raw-text" placeholder="在此粘贴单词本内容...&#10;格式：&#10;Word&#10;Definition&#10;..."></textarea>
+        <button class="btn-main" onclick="importPaste()">导入并开始内化</button>
         <button class="btn-main" style="background:none; color:#5c6370; border:none;" onclick="useCache()">使用上次缓存</button>
     </div>
 </div>
 
-<main id="main-scroll">
+<main id="main-container">
     <div class="progress"><div id="bar-fill"></div></div>
     <div id="word-text">---</div>
     <div id="hint-text">Waiting</div>
@@ -123,21 +130,23 @@
     <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
 </footer>
 
-<div id="modal-list" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:6000; flex-direction:column; padding:60px 20px; overflow-y:auto;">
+<div id="modal-list" class="modal-full">
     <div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div>
     <h2 id="list-title" style="color:var(--blue); font-weight:200;">LIST</h2>
     <div id="list-content"></div>
 </div>
 
 <script>
-    let wordBank = JSON.parse(localStorage.getItem('v32_data')) || [];
+    let wordBank = JSON.parse(localStorage.getItem('v33_data')) || [];
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
 
+    // --- UI 控制 ---
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
     function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
 
+    // --- 数据导入 ---
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
         if(!raw) return;
@@ -145,13 +154,13 @@
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
         wordBank = res;
-        localStorage.setItem('v32_data', JSON.stringify(wordBank));
+        localStorage.setItem('v33_data', JSON.stringify(wordBank));
         useCache();
     }
-
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("RESET?")) { localStorage.clear(); location.reload(); } }
+    function resetApp() { if(confirm("确定清空所有记录？")) { localStorage.clear(); location.reload(); } }
 
+    // --- 核心引擎 ---
     function shuffle() {
         let arc = wordBank.filter(w => w.arc);
         let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5);
@@ -170,6 +179,7 @@
         document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
+        document.getElementById('main-container').scrollTop = 0;
 
         if(circle === 1) {
             document.getElementById('word-text').innerText = item.w;
@@ -184,7 +194,7 @@
         } else {
             document.getElementById('word-text').innerText = item.d;
             document.getElementById('hint-text').innerText = "Circle 3: Spelling";
-            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
+            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = ""; s.focus();
         }
     }
 
@@ -208,7 +218,7 @@
     function move(ok) {
         locked = true; if(!ok) errors++;
         setTimeout(() => {
-            if(ok) curIdx++; else alert("Correct: " + wordBank.filter(w => !w.arc)[curIdx].w);
+            if(ok) curIdx++; else alert("Ans: " + wordBank.filter(w => !w.arc)[curIdx].w);
             locked = false; checkEnd();
         }, 300);
     }
@@ -217,7 +227,7 @@
         let active = wordBank.filter(w => !w.arc);
         if(curIdx >= active.length && active.length > 0) {
             if(errors === 0) { circle++; curIdx = 0; if(isRandom) shuffle(); alert("Circle Clear!"); }
-            else { curIdx = 0; errors = 0; alert("Restarting..."); }
+            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
         }
         update();
     }
@@ -227,7 +237,7 @@
         let active = wordBank.filter(w => !w.arc);
         if(active[curIdx]) {
             wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v32_data', JSON.stringify(wordBank));
+            localStorage.setItem('v33_data', JSON.stringify(wordBank));
             update();
         }
     }
@@ -237,7 +247,7 @@
         document.getElementById('modal-list').style.display = 'flex';
         let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
         document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
-        document.getElementById('list-content').innerHTML = data.map(w => `<div style="padding:15px; border-bottom:1px solid #333"><b>${w.w}</b><br><small>${w.d}</small></div>`).join('');
+        document.getElementById('list-content').innerHTML = data.map(w => `<div class="list-row"><b>${w.w}</b><span>${w.d}</span></div>`).join('');
     }
 
     window.onload = useCache;
