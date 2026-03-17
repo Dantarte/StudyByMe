@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mastery V31 - Ultra Stable</title>
+    <title>Mastery V32 - Pro Mobile</title>
     <style>
         :root { 
             --bg: #000; --app-bg: #1e1e1e; --text: #abb2bf;
@@ -11,14 +11,14 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { 
             background: var(--bg); color: var(--text); 
             font-family: -apple-system, system-ui, sans-serif; 
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* 顶部导航：左右布局 */
+        /* 顶部导航 */
         header {
             padding-top: calc(var(--safe-top) + 10px);
             padding-left: 20px; padding-right: 20px; padding-bottom: 10px;
@@ -35,7 +35,7 @@
         }
         .side-panel.active { display: flex; }
         .panel-item { 
-            padding: 20px 0; border-bottom: 1px solid var(--border);
+            padding: 22px 0; border-bottom: 1px solid var(--border);
             font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; align-items: center;
         }
         .panel-item.active { color: var(--blue); font-weight: bold; }
@@ -64,7 +64,7 @@
             padding-top: 15px; display: flex; justify-content: center; gap: 50px;
             flex-shrink: 0;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; }
 
         /* 进度条 */
         .progress { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #000; }
@@ -74,27 +74,22 @@
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         textarea { width: 100%; height: 200px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; }
         .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; margin-bottom: 15px; }
-        
-        /* 诊断日志 */
-        #debug-box { position: fixed; bottom: 0; width: 100%; background: rgba(224, 108, 117, 0.2); color: var(--red); font-size: 0.6rem; padding: 5px; z-index: 10000; display: none; }
     </style>
 </head>
 <body>
 
-<div id="debug-box"></div>
-
 <header>
     <div class="icon-btn" onclick="openPanel('left')">☰</div>
-    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--blue);">MASTER PRO V31</div>
+    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--blue);">MASTER PRO V32</div>
     <div class="icon-btn" onclick="openPanel('right')">📂</div>
 </header>
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
     <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">SET MODE</h3>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别识别 (Word→Def)</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想回想 (Def→Word)</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写 (Perfect)</div>
+    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别 (Word→Def)</div>
+    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想 (Def→Word)</div>
+    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写 (Perfect)</div>
     <div class="panel-item" onclick="toggleRandom()">随机模式 <span id="rand-status" style="color:var(--blue)">OFF</span></div>
 </div>
 
@@ -108,11 +103,10 @@
 
 <div id="import-center">
     <div style="width:100%; max-width:400px; text-align:center;">
-        <h2 style="font-weight: 200; margin-bottom: 20px;">READY <span style="color:var(--blue)">MASTER</span></h2>
+        <h2 style="font-weight: 200; margin-bottom: 20px;">V32 <span style="color:var(--blue)">ENGINE</span></h2>
         <textarea id="raw-text" placeholder="粘贴 Pages 内容在此..."></textarea>
         <button class="btn-main" onclick="importPaste()">导入数据并开始</button>
-        <button class="btn-main" style="background:none; color:#5c6370; border:none;" onclick="useCache()">使用缓存继续学习</button>
-        <div style="font-size:0.6rem; color:#333; margin-top:10px;">V31 STABLE BUILD</div>
+        <button class="btn-main" style="background:none; color:#5c6370; border:none;" onclick="useCache()">使用上次缓存</button>
     </div>
 </div>
 
@@ -136,38 +130,27 @@
 </div>
 
 <script>
-    // 强制错误捕获
-    window.onerror = function(msg, url, line) {
-        const dbg = document.getElementById('debug-box');
-        dbg.style.display = 'block';
-        dbg.innerText = `Error: ${msg} [Line: ${line}]`;
-    };
-
-    let wordBank = [];
-    try { wordBank = JSON.parse(localStorage.getItem('v31_data')) || []; } catch(e) {}
-
+    let wordBank = JSON.parse(localStorage.getItem('v32_data')) || [];
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
 
-    // UI
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
     function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
 
-    // Logic
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
-        if(!raw) return alert("内容为空");
+        if(!raw) return;
         const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
         wordBank = res;
-        localStorage.setItem('v31_data', JSON.stringify(wordBank));
+        localStorage.setItem('v32_data', JSON.stringify(wordBank));
         useCache();
     }
 
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("确定清空？")) { localStorage.clear(); location.reload(); } }
+    function resetApp() { if(confirm("RESET?")) { localStorage.clear(); location.reload(); } }
 
     function shuffle() {
         let arc = wordBank.filter(w => w.arc);
@@ -187,21 +170,20 @@
         document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
-        document.getElementById('main-scroll').scrollTop = 0;
 
         if(circle === 1) {
             document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "IDENTIFY (C1)";
+            document.getElementById('hint-text').innerText = "Circle 1: Identify";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.d, 'd', active);
         } else if(circle === 2) {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "RECALL (C2)";
+            document.getElementById('hint-text').innerText = "Circle 2: Recall";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.w, 'w', active);
         } else {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "SPELLING (C3)";
+            document.getElementById('hint-text').innerText = "Circle 3: Spelling";
             const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = "";
         }
     }
@@ -245,15 +227,14 @@
         let active = wordBank.filter(w => !w.arc);
         if(active[curIdx]) {
             wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v31_data', JSON.stringify(wordBank));
+            localStorage.setItem('v32_data', JSON.stringify(wordBank));
             update();
         }
     }
 
     function showList(type) {
         closePanel('right');
-        const m = document.getElementById('modal-list');
-        m.style.display = 'flex';
+        document.getElementById('modal-list').style.display = 'flex';
         let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
         document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
         document.getElementById('list-content').innerHTML = data.map(w => `<div style="padding:15px; border-bottom:1px solid #333"><b>${w.w}</b><br><small>${w.d}</small></div>`).join('');
