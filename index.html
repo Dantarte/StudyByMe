@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V41</title>
+    <title>DANTAHIBOU V42 Universal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -24,79 +24,89 @@
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
+        /* 统一安全宽度外框 (适配桌面) */
+        .wrapper { width: 100%; max-width: 800px; margin: 0 auto; position: relative; display: flex; flex-direction: column; height: 100%; }
+
         header {
-            padding-top: calc(var(--safe-top) + 10px);
-            padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
+            padding-top: calc(var(--safe-top) + 15px);
+            padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center;
-            background: #0d1117; border-bottom: 1px solid var(--border);
-            flex-shrink: 0; z-index: 200;
+            background: rgba(13, 17, 23, 0.9); border-bottom: 1px solid var(--border);
+            flex-shrink: 0; z-index: 200; backdrop-filter: blur(10px);
         }
-        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: color 0.2s; }
+        .icon-btn:hover { color: #fff; }
         
         .repo-icon { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
-        .repo-icon span { display: block; height: 2px; background: var(--text); border-radius: 1px; }
+        .repo-icon span { display: block; height: 2px; background: currentColor; border-radius: 1px; transition: 0.2s; }
         .repo-icon span:nth-child(1) { width: 16px; }
         .repo-icon span:nth-child(2) { width: 10px; }
         .repo-icon span:nth-child(3) { width: 14px; }
 
+        /* 侧边面板 (移动端全屏，桌面端抽屉) */
         .side-panel {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            position: fixed; top: 0; bottom: 0; background: rgba(0,0,0,0.95);
             z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
+            backdrop-filter: blur(15px);
         }
         .side-panel.active { display: flex; }
         .panel-item { 
             padding: 22px 0; border-bottom: 1px solid var(--border);
-            font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s;
         }
+        .panel-item:hover { color: var(--blue); }
         .panel-item.active { color: var(--blue); font-weight: bold; }
-        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; }
+        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; transition: color 0.2s; }
+        .close-btn:hover { color: #fff; }
 
         #main-container { 
             flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
-            padding: 20px; padding-bottom: 120px; position: relative;
+            padding: 40px 20px 120px 20px; position: relative;
         }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 20px 0 10px; line-height: 1.2; word-wrap: break-word; }
-        #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 25px; }
+        #word-text { font-size: 2.8rem; font-weight: 200; color: #fff; text-align: center; margin: 20px 0 10px; line-height: 1.2; word-wrap: break-word; }
+        #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
-        .opts-grid { display: grid; gap: 12px; width: 100%; margin-bottom: 30px; }
+        .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
         button.choice { 
             background: var(--app-bg); color: var(--text); border: 1px solid var(--border); 
-            padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4;
+            padding: 22px 18px; font-size: 1.05rem; border-radius: 12px; text-align: left; line-height: 1.5; cursor: pointer; transition: all 0.2s;
         }
-        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
+        button.choice:hover { border-color: var(--blue); background: #1c2128; }
+        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important; }
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
-        #roleplay-box { font-size: 1rem; text-align: left; height: 100px; resize: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;}
+        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; transition: border-color 0.2s; }
+        .input-box:focus { border-color: var(--green); }
+        #roleplay-box { font-size: 1.1rem; text-align: left; height: 120px; resize: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;}
 
         footer {
-            position: fixed; bottom: 0; left: 0; width: 100%;
+            position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
             background: #0d1117; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px);
-            padding-top: 15px; display: flex; justify-content: center; gap: 50px;
+            padding-top: 15px; display: flex; justify-content: center; gap: 80px;
             z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; transition: color 0.2s; }
+        .footer-btn:hover { color: #fff; }
 
-        .progress { position: fixed; top: calc(var(--safe-top) + 64px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
+        .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
 
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
-        textarea.paste-area { width: 100%; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
-        .btn-sec { background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 0.85rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        textarea.paste-area { width: 100%; max-width: 600px; height: 180px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 20px; border-radius: 12px; font-size: 1.05rem; margin-bottom: 20px; resize: none; font-family: inherit;}
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; max-width: 400px; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .btn-main:hover { opacity: 0.8; }
+        .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; width: 100%; max-width: 400px; }
+        .btn-sec { background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 0.9rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .btn-sec:hover { background: #444; }
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        
-        /* 修改：撤销按钮重构为极简 ✕ 号 */
         .restore-btn { background: none; border: none; color: #5c6370; padding: 10px; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-        .restore-btn:active { color: var(--red); }
+        .restore-btn:hover { color: var(--red); }
 
-        /* 极简顶部报错条 */
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: var(--red); color: #fff; font-weight: bold; letter-spacing: 3px;
@@ -105,22 +115,49 @@
             transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
         }
-        #toast-alert.show { top: calc(var(--safe-top) + 80px); }
+        #toast-alert.show { top: calc(var(--safe-top) + 90px); }
+
+        /* ======== 桌面端媒体查询 ======== */
+        @media (max-width: 767px) {
+            .side-panel { left: 0; right: 0; }
+        }
+        @media (min-width: 768px) {
+            #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
+            #panel-right { right: 0; left: auto; width: 420px; border-left: 1px solid var(--border); }
+            .opts-grid { grid-template-columns: 1fr 1fr; } /* 电脑端按钮变两列 */
+            .modal-full { padding: 80px 20%; } /* 列表两边留白 */
+        }
     </style>
 </head>
 <body>
 
 <div id="toast-alert">[ WRONG ]</div>
 
-<header>
-    <div class="icon-btn" style="font-size: 1.4rem;" onclick="openPanel('left')">☰</div>
-    <div style="font-size: 0.8rem; font-weight: bold; letter-spacing: 2px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
-    <div class="icon-btn" onclick="openPanel('right')">
-        <div class="repo-icon"><span></span><span></span><span></span></div>
-    </div>
-</header>
+<div class="wrapper">
+    <header>
+        <div class="icon-btn" style="font-size: 1.5rem;" onclick="openPanel('left')">☰</div>
+        <div style="font-size: 0.85rem; font-weight: bold; letter-spacing: 3px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
+        <div class="icon-btn" onclick="openPanel('right')">
+            <div class="repo-icon"><span></span><span></span><span></span></div>
+        </div>
+    </header>
 
-<div class="progress"><div id="bar-fill"></div></div>
+    <div class="progress"><div id="bar-fill"></div></div>
+
+    <main id="main-container">
+        <div id="word-text">---</div>
+        <div id="hint-text">Waiting</div>
+        <div class="opts-grid" id="btns"></div>
+        <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
+        <textarea id="roleplay-box" class="input-box" placeholder="Write a sentence using this term..."></textarea>
+        <button id="submit-rp" class="btn-main" style="display:none; margin: 15px auto 0; max-width: 200px;" onclick="move(true)">SUBMIT</button>
+    </main>
+
+    <footer>
+        <button class="footer-btn" onclick="skip()">SKIP</button>
+        <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
+    </footer>
+</div>
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
@@ -143,47 +180,33 @@
 </div>
 
 <div id="import-center">
-    <div class="import-card">
-        <h1 style="font-weight: 200; margin-bottom: 25px; color:#fff; letter-spacing: 3px;">DANTAHIBOU</h1>
-        <textarea id="raw-text" class="paste-area" placeholder="粘贴内容...&#10;格式：&#10;Word&#10;Definition&#10;..."></textarea>
-        <button class="btn-main" onclick="importPaste()">导入并开始</button>
-        
-        <div class="file-grid">
-            <label for="p-in" class="btn-sec">PDF 导入</label>
-            <label for="d-in" class="btn-sec">Word 导入</label>
-        </div>
-        <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
-        <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-
-        <button class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.8rem;" onclick="useCache()">使用上次缓存</button>
+    <h1 style="font-weight: 200; margin-bottom: 30px; color:#fff; letter-spacing: 4px;">DANTAHIBOU</h1>
+    <textarea id="raw-text" class="paste-area" placeholder="粘贴单词本内容...&#10;格式：&#10;Word&#10;Definition&#10;..."></textarea>
+    <button class="btn-main" onclick="importPaste()">导入并开始</button>
+    
+    <div class="file-grid">
+        <label for="p-in" class="btn-sec">PDF 导入</label>
+        <label for="d-in" class="btn-sec">Word 导入</label>
     </div>
+    <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
+    <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
+
+    <button class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.85rem; margin-top: 20px;" onclick="useCache()">使用上次缓存</button>
 </div>
-
-<main id="main-container">
-    <div id="word-text">---</div>
-    <div id="hint-text">Waiting</div>
-    <div class="opts-grid" id="btns"></div>
-    <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
-    <textarea id="roleplay-box" class="input-box" placeholder="造个应用句子..."></textarea>
-    <button id="submit-rp" class="btn-main" style="display:none; margin-top:10px;" onclick="move(true)">提交句子</button>
-</main>
-
-<footer>
-    <button class="footer-btn" onclick="skip()">SKIP</button>
-    <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
-</footer>
 
 <div id="modal-list" class="modal-full">
     <div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div>
-    <h2 id="list-title" style="color:var(--blue); font-weight:200;">LIST</h2>
-    <div id="list-content"></div>
+    <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+        <h2 id="list-title" style="color:var(--blue); font-weight:200; margin-bottom: 30px;">LIST</h2>
+        <div id="list-content"></div>
+    </div>
 </div>
 
 <script>
     window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
 
-    // 兼容 V40 的数据，防止更新后需重新导入
-    let wordBank = JSON.parse(localStorage.getItem('v41_data')) || JSON.parse(localStorage.getItem('v40_data')) || [];
+    // 兼容之前所有版本的数据
+    let wordBank = JSON.parse(localStorage.getItem('v42_data')) || JSON.parse(localStorage.getItem('v41_data')) || JSON.parse(localStorage.getItem('v40_data')) || [];
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
 
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
@@ -225,11 +248,11 @@
     function build(lines) {
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
-        wordBank = res; localStorage.setItem('v41_data', JSON.stringify(wordBank)); useCache();
+        wordBank = res; localStorage.setItem('v42_data', JSON.stringify(wordBank)); useCache();
     }
 
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("重置所有数据？")) { localStorage.clear(); location.reload(); } }
+    function resetApp() { if(confirm("重置所有数据？此操作不可逆。")) { localStorage.clear(); location.reload(); } }
 
     function shuffle() {
         let arc = wordBank.filter(w => w.arc);
@@ -246,7 +269,7 @@
 
     function update() {
         let active = wordBank.filter(w => !w.arc);
-        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
+        if(active.length === 0) { document.getElementById('word-text').innerText = "ALL CLEAR"; return; }
         if(curIdx >= active.length) { checkEnd(); return; }
 
         document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
@@ -263,21 +286,21 @@
 
         if(circle === 1) {
             document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "C1: Identify识别";
+            document.getElementById('hint-text').innerText = "C1: Identify";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.d, 'd', active);
         } else if(circle === 2) {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "C2: Recall回想";
+            document.getElementById('hint-text').innerText = "C2: Recall";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.w, 'w', active);
         } else if(circle === 3) {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "C3: Spelling拼写";
+            document.getElementById('hint-text').innerText = "C3: Spelling";
             const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = ""; s.focus();
         } else if(circle === 4) {
             document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "C4: Role-play实战造句";
+            document.getElementById('hint-text').innerText = "C4: Role-play";
             const r = document.getElementById('roleplay-box'); r.style.display = 'block'; r.value = ""; r.focus();
             document.getElementById('submit-rp').style.display = 'block';
         }
@@ -324,9 +347,9 @@
         if(curIdx >= active.length && active.length > 0) {
             if(errors === 0) { 
                 if(circle < 4) circle++; else circle = 1; 
-                curIdx = 0; if(isRandom) shuffle(); alert(" Circle Cleared!"); 
+                curIdx = 0; if(isRandom) shuffle(); alert("Circle Cleared!"); 
             }
-            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
+            else { curIdx = 0; errors = 0; alert("Requires 100% Accuracy. Restarting Circle..."); }
         }
         update();
     }
@@ -336,14 +359,14 @@
         let active = wordBank.filter(w => !w.arc);
         if(active[curIdx]) {
             wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v41_data', JSON.stringify(wordBank));
+            localStorage.setItem('v42_data', JSON.stringify(wordBank));
             update();
         }
     }
 
     function restoreWord(wToRestore) {
         wordBank.find(w => w.w === wToRestore).arc = false;
-        localStorage.setItem('v41_data', JSON.stringify(wordBank));
+        localStorage.setItem('v42_data', JSON.stringify(wordBank));
         showList('arc'); 
         update(); 
     }
@@ -355,7 +378,7 @@
         document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE (已掌握)";
         document.getElementById('list-content').innerHTML = data.map(w => `
             <div class="list-row">
-                <div><b>${w.w}</b><br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span></div>
+                <div><b>${w.w}</b><br><span style="color:#5c6370; font-size:0.95rem;">${w.d}</span></div>
                 ${type === 'arc' ? `<button class="restore-btn" onclick="restoreWord('${w.w}')">✕</button>` : ''}
             </div>
         `).join('');
