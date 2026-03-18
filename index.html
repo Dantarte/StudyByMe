@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V42 Universal</title>
+    <title>DANTAHIBOU V43</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -18,18 +18,12 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { 
-            background: var(--bg); color: var(--text); 
-            font-family: -apple-system, system-ui, sans-serif; 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* 统一安全宽度外框 (适配桌面) */
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; position: relative; display: flex; flex-direction: column; height: 100%; }
 
         header {
-            padding-top: calc(var(--safe-top) + 15px);
-            padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
+            padding-top: calc(var(--safe-top) + 15px); padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(13, 17, 23, 0.9); border-bottom: 1px solid var(--border);
             flex-shrink: 0; z-index: 200; backdrop-filter: blur(10px);
@@ -43,34 +37,29 @@
         .repo-icon span:nth-child(2) { width: 10px; }
         .repo-icon span:nth-child(3) { width: 14px; }
 
-        /* 侧边面板 (移动端全屏，桌面端抽屉) */
         .side-panel {
             position: fixed; top: 0; bottom: 0; background: rgba(0,0,0,0.95);
-            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
-            backdrop-filter: blur(15px);
+            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px; backdrop-filter: blur(15px);
         }
         .side-panel.active { display: flex; }
-        .panel-item { 
-            padding: 22px 0; border-bottom: 1px solid var(--border);
-            font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s;
-        }
+        .panel-item { padding: 22px 0; border-bottom: 1px solid var(--border); font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
         .panel-item:hover { color: var(--blue); }
         .panel-item.active { color: var(--blue); font-weight: bold; }
         .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; transition: color 0.2s; }
         .close-btn:hover { color: #fff; }
 
-        #main-container { 
-            flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
-            padding: 40px 20px 120px 20px; position: relative;
-        }
-        #word-text { font-size: 2.8rem; font-weight: 200; color: #fff; text-align: center; margin: 20px 0 10px; line-height: 1.2; word-wrap: break-word; }
+        #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
+        
+        /* 响应式排版与收藏星标 */
+        .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
+        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
+        #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; transition: color 0.2s, transform 0.2s; user-select: none; display: none; }
+        #fav-btn:active { transform: scale(1.3); }
+        
         #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
         .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
-        button.choice { 
-            background: var(--app-bg); color: var(--text); border: 1px solid var(--border); 
-            padding: 22px 18px; font-size: 1.05rem; border-radius: 12px; text-align: left; line-height: 1.5; cursor: pointer; transition: all 0.2s;
-        }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
         button.choice:hover { border-color: var(--blue); background: #1c2128; }
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important; }
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
@@ -84,9 +73,7 @@
         footer {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
             background: #0d1117; border-top: 1px solid var(--border);
-            padding-bottom: calc(var(--safe-bottom) + 15px);
-            padding-top: 15px; display: flex; justify-content: center; gap: 80px;
-            z-index: 300;
+            padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
         .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; transition: color 0.2s; }
         .footer-btn:hover { color: #fff; }
@@ -110,22 +97,19 @@
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: var(--red); color: #fff; font-weight: bold; letter-spacing: 3px;
-            padding: 15px 40px; border-radius: 30px; z-index: 10000;
-            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
-            transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
+            padding: 15px 40px; border-radius: 30px; z-index: 10000; box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
+            transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
         }
         #toast-alert.show { top: calc(var(--safe-top) + 90px); }
 
-        /* ======== 桌面端媒体查询 ======== */
-        @media (max-width: 767px) {
-            .side-panel { left: 0; right: 0; }
-        }
+        /* 响应式断点 */
+        @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
+            #word-text { font-size: 2.8rem; } /* 电脑端字体放大 */
             #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
             #panel-right { right: 0; left: auto; width: 420px; border-left: 1px solid var(--border); }
-            .opts-grid { grid-template-columns: 1fr 1fr; } /* 电脑端按钮变两列 */
-            .modal-full { padding: 80px 20%; } /* 列表两边留白 */
+            .opts-grid { grid-template-columns: 1fr 1fr; }
+            .modal-full { padding: 80px 20%; }
         }
     </style>
 </head>
@@ -137,15 +121,16 @@
     <header>
         <div class="icon-btn" style="font-size: 1.5rem;" onclick="openPanel('left')">☰</div>
         <div style="font-size: 0.85rem; font-weight: bold; letter-spacing: 3px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
-        <div class="icon-btn" onclick="openPanel('right')">
-            <div class="repo-icon"><span></span><span></span><span></span></div>
-        </div>
+        <div class="icon-btn" onclick="openPanel('right')"><div class="repo-icon"><span></span><span></span><span></span></div></div>
     </header>
 
     <div class="progress"><div id="bar-fill"></div></div>
 
     <main id="main-container">
-        <div id="word-text">---</div>
+        <div class="word-header">
+            <div id="word-text">---</div>
+            <div id="fav-btn" onclick="toggleFavCurrent()">☆</div>
+        </div>
         <div id="hint-text">Waiting</div>
         <div class="opts-grid" id="btns"></div>
         <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
@@ -166,8 +151,10 @@
     <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想回想 (Def→Word)</div>
     <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写 (Perfect)</div>
     <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战实战 (Role-play)</div>
-    <div class="panel-item" onclick="toggleRandom()" style="margin-top: 20px; border-top: 1px solid var(--border);">
-        随机模式 (Random Mode) <span id="rand-status" style="color:var(--blue)">OFF</span>
+    
+    <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 10px;">
+        <div class="panel-item" onclick="toggleRandom()">随机模式 <span id="rand-status" style="color:#5c6370">OFF</span></div>
+        <div class="panel-item" onclick="toggleFavMode()">收藏训练 <span id="fav-status" style="color:#5c6370">OFF</span></div>
     </div>
 </div>
 
@@ -181,16 +168,14 @@
 
 <div id="import-center">
     <h1 style="font-weight: 200; margin-bottom: 30px; color:#fff; letter-spacing: 4px;">DANTAHIBOU</h1>
-    <textarea id="raw-text" class="paste-area" placeholder="粘贴单词本内容...&#10;格式：&#10;Word&#10;Definition&#10;..."></textarea>
+    <textarea id="raw-text" class="paste-area" placeholder="粘贴单词本内容..."></textarea>
     <button class="btn-main" onclick="importPaste()">导入并开始</button>
-    
     <div class="file-grid">
         <label for="p-in" class="btn-sec">PDF 导入</label>
         <label for="d-in" class="btn-sec">Word 导入</label>
     </div>
     <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
     <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-
     <button class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.85rem; margin-top: 20px;" onclick="useCache()">使用上次缓存</button>
 </div>
 
@@ -205,78 +190,102 @@
 <script>
     window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
 
-    // 兼容之前所有版本的数据
-    let wordBank = JSON.parse(localStorage.getItem('v42_data')) || JSON.parse(localStorage.getItem('v41_data')) || JSON.parse(localStorage.getItem('v40_data')) || [];
-    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
+    // 数据迁移与初始化：增加 fav 字段
+    let wordBank = JSON.parse(localStorage.getItem('v43_data')) || JSON.parse(localStorage.getItem('v42_data')) || [];
+    wordBank.forEach(w => { if(typeof w.fav === 'undefined') w.fav = false; });
+
+    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
 
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
-    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
+    
+    function toggleRandom() { 
+        isRandom = !isRandom; 
+        document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; 
+        document.getElementById('rand-status').style.color = isRandom ? "var(--blue)" : "#5c6370";
+        if(isRandom) shuffle(); curIdx = 0; update(); 
+    }
+
+    function toggleFavMode() {
+        isFavMode = !isFavMode;
+        document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF";
+        document.getElementById('fav-status').style.color = isFavMode ? "var(--blue)" : "#5c6370";
+        curIdx = 0; closePanel('left'); update();
+    }
+
+    function toggleFavCurrent() {
+        let pool = isFavMode ? wordBank.filter(w => !w.arc && w.fav) : wordBank.filter(w => !w.arc);
+        if(!pool[curIdx]) return;
+        let actualWord = wordBank.find(w => w.w === pool[curIdx].w);
+        actualWord.fav = !actualWord.fav;
+        localStorage.setItem('v43_data', JSON.stringify(wordBank));
+        updateFavIcon(actualWord.fav);
+    }
+
+    function updateFavIcon(isFav) {
+        const btn = document.getElementById('fav-btn');
+        btn.innerText = isFav ? "★" : "☆";
+        btn.style.color = isFav ? "var(--blue)" : "#5c6370";
+    }
 
     function importPaste() { const raw = document.getElementById('raw-text').value.trim(); if(!raw) return; build(raw.split('\n').map(l=>l.trim()).filter(l=>l)); }
-    
     async function parsePDF(file) {
         if(!file) return;
         try {
-            const buf = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(buf).promise;
-            let lines = [];
+            const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(buf).promise; let lines = [];
             for(let i=1; i<=pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                let yMap = {};
+                const page = await pdf.getPage(i); const content = await page.getTextContent(); let yMap = {};
                 content.items.forEach(it => {
-                    let text = it.str.trim();
-                    if(!text) return; 
-                    let y = Math.round(it.transform[5]);
-                    let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
-                    if (matchedY) { yMap[matchedY].push({x: it.transform[4], s: text}); } 
-                    else { yMap[y] = [{x: it.transform[4], s: text}]; }
+                    let text = it.str.trim(); if(!text) return; 
+                    let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
+                    if (matchedY) yMap[matchedY].push({x: it.transform[4], s: text}); else yMap[y] = [{x: it.transform[4], s: text}];
                 });
-                Object.keys(yMap).sort((a,b)=>b-a).forEach(y => {
-                    let lineStr = yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim();
-                    if(lineStr) lines.push(lineStr);
-                });
+                Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
             }
             build(lines);
-        } catch(e) { alert("PDF 解析错误，建议使用粘贴导入。"); }
+        } catch(e) { alert("PDF 解析错误。"); }
     }
-
     function parseDOC(file) { if(!file) return; file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim())))); }
 
     function build(lines) {
         let res = [];
-        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
-        wordBank = res; localStorage.setItem('v42_data', JSON.stringify(wordBank)); useCache();
+        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false, fav: false});
+        wordBank = res; localStorage.setItem('v43_data', JSON.stringify(wordBank)); useCache();
     }
 
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("重置所有数据？此操作不可逆。")) { localStorage.clear(); location.reload(); } }
-
-    function shuffle() {
-        let arc = wordBank.filter(w => w.arc);
-        let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5);
-        wordBank = [...act, ...arc];
-    }
+    function resetApp() { if(confirm("此操作不可逆，重置所有数据？")) { localStorage.clear(); location.reload(); } }
+    function shuffle() { let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5); let arc = wordBank.filter(w => w.arc); wordBank = [...act, ...arc]; }
 
     function showToast() {
-        const t = document.getElementById('toast-alert');
-        t.classList.add('show');
-        locked = true;
+        const t = document.getElementById('toast-alert'); t.classList.add('show'); locked = true;
         setTimeout(() => { t.classList.remove('show'); locked = false; }, 1200);
     }
 
+    function getPool() { return isFavMode ? wordBank.filter(w => !w.arc && w.fav) : wordBank.filter(w => !w.arc); }
+
     function update() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active.length === 0) { document.getElementById('word-text').innerText = "ALL CLEAR"; return; }
-        if(curIdx >= active.length) { checkEnd(); return; }
+        let pool = getPool();
+        if(pool.length === 0) { 
+            document.getElementById('word-text').innerText = isFavMode ? "NO FAVORITES" : "ALL CLEAR"; 
+            document.getElementById('fav-btn').style.display = 'none';
+            document.getElementById('btns').style.display = 'none';
+            document.getElementById('spell-box').style.display = 'none';
+            document.getElementById('roleplay-box').style.display = 'none';
+            document.getElementById('submit-rp').style.display = 'none';
+            return; 
+        }
+        document.getElementById('fav-btn').style.display = 'block';
+        if(curIdx >= pool.length) { checkEnd(); return; }
 
         document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
         if(document.getElementById('m'+circle)) document.getElementById('m'+circle).classList.add('active');
 
-        const item = active[curIdx];
-        document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
+        const item = pool[curIdx];
+        document.getElementById('bar-fill').style.width = (curIdx / pool.length * 100) + "%";
+        
+        updateFavIcon(item.fav);
         
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
@@ -288,12 +297,12 @@
             document.getElementById('word-text').innerText = item.w;
             document.getElementById('hint-text').innerText = "C1: Identify";
             document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.d, 'd', active);
+            renderOpts(item.d, 'd', pool);
         } else if(circle === 2) {
             document.getElementById('word-text').innerText = item.d;
             document.getElementById('hint-text').innerText = "C2: Recall";
             document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.w, 'w', active);
+            renderOpts(item.w, 'w', pool);
         } else if(circle === 3) {
             document.getElementById('word-text').innerText = item.d;
             document.getElementById('hint-text').innerText = "C3: Spelling";
@@ -308,8 +317,10 @@
 
     function renderOpts(corr, key, pool) {
         let opts = [corr];
-        while(opts.length < 4 && opts.length < pool.length) {
-            let r = pool[Math.floor(Math.random()*pool.length)][key];
+        // Ensure we don't duplicate options or get stuck if pool is small
+        let safetyPool = wordBank.filter(w => !w.arc); 
+        while(opts.length < 4 && opts.length < safetyPool.length) {
+            let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key];
             if(!opts.includes(r)) opts.push(r);
         }
         opts.sort(() => Math.random() - 0.5);
@@ -319,11 +330,7 @@
             b.onclick = () => { 
                 if(!locked) { 
                     if(o === corr) { b.classList.add('correct'); move(true); } 
-                    else { 
-                        b.classList.add('wrong-shake'); 
-                        move(false); 
-                        setTimeout(() => b.classList.remove('wrong-shake'), 400);
-                    } 
+                    else { b.classList.add('wrong-shake'); move(false); setTimeout(() => b.classList.remove('wrong-shake'), 400); } 
                 } 
             };
             area.appendChild(b);
@@ -332,53 +339,64 @@
 
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
-            if(e.target.value.trim().toLowerCase() === wordBank.filter(w=>!w.arc)[curIdx].w.toLowerCase()) move(true); 
+            let pool = getPool();
+            if(e.target.value.trim().toLowerCase() === pool[curIdx].w.toLowerCase()) move(true); 
             else move(false); 
         } 
     };
 
     function move(ok) {
-        if(ok) { curIdx++; checkEnd(); } 
+        if(ok) {
+            locked = true;
+            const wt = document.getElementById('word-text');
+            wt.style.color = "var(--green)"; // 正反馈：单词变绿
+            setTimeout(() => {
+                wt.style.color = "#fff";
+                curIdx++; 
+                locked = false;
+                checkEnd(); 
+            }, 300); // 0.3秒多巴胺反馈时间
+        } 
         else { errors++; showToast(); } 
     }
 
     function checkEnd() {
-        let active = wordBank.filter(w => !w.arc);
-        if(curIdx >= active.length && active.length > 0) {
+        if(locked) return;
+        let pool = getPool();
+        if(curIdx >= pool.length && pool.length > 0) {
             if(errors === 0) { 
                 if(circle < 4) circle++; else circle = 1; 
                 curIdx = 0; if(isRandom) shuffle(); alert("Circle Cleared!"); 
             }
-            else { curIdx = 0; errors = 0; alert("Requires 100% Accuracy. Restarting Circle..."); }
+            else { curIdx = 0; errors = 0; alert("Requires 100% Accuracy. Restarting..."); }
         }
         update();
     }
 
     function skip() { if(!locked) { curIdx++; update(); } }
+    
     function archiveCurrent() {
-        let active = wordBank.filter(w => !w.arc);
-        if(active[curIdx]) {
-            wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v42_data', JSON.stringify(wordBank));
+        let pool = getPool();
+        if(pool[curIdx]) {
+            wordBank.find(w => w.w === pool[curIdx].w).arc = true;
+            localStorage.setItem('v43_data', JSON.stringify(wordBank));
             update();
         }
     }
 
     function restoreWord(wToRestore) {
         wordBank.find(w => w.w === wToRestore).arc = false;
-        localStorage.setItem('v42_data', JSON.stringify(wordBank));
-        showList('arc'); 
-        update(); 
+        localStorage.setItem('v43_data', JSON.stringify(wordBank));
+        showList('arc'); update(); 
     }
 
     function showList(type) {
-        closePanel('right');
-        document.getElementById('modal-list').style.display = 'flex';
+        closePanel('right'); document.getElementById('modal-list').style.display = 'flex';
         let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
-        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE (已掌握)";
+        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
         document.getElementById('list-content').innerHTML = data.map(w => `
             <div class="list-row">
-                <div><b>${w.w}</b><br><span style="color:#5c6370; font-size:0.95rem;">${w.d}</span></div>
+                <div><b>${w.w}</b> ${w.fav ? '<span style="color:var(--blue)">★</span>' : ''}<br><span style="color:#5c6370; font-size:0.95rem;">${w.d}</span></div>
                 ${type === 'arc' ? `<button class="restore-btn" onclick="restoreWord('${w.w}')">✕</button>` : ''}
             </div>
         `).join('');
