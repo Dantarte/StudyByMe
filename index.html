@@ -7,13 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>Mastery V37 - Final Cut</title>
+    <title>DANTAHIBOU V38</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root { 
             --bg: #000; --app-bg: #161b22; --text: #abb2bf;
-            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #30363d;
+            --blue: #61afef; --green: #98c379; --red: #ff4444; --border: #30363d;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -24,7 +24,7 @@
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* 顶部导航 - 锁定区 */
+        /* 顶部导航 */
         header {
             padding-top: calc(var(--safe-top) + 10px);
             padding-left: 15px; padding-right: 15px; padding-bottom: 10px;
@@ -32,30 +32,32 @@
             background: #0d1117; border-bottom: 1px solid var(--border);
             flex-shrink: 0; z-index: 200;
         }
-        .icon-btn { font-size: 1.4rem; color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
+        /* 融合风格的仓库图标 */
+        .repo-icon { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+        .repo-icon span { display: block; height: 2px; background: var(--text); border-radius: 1px; }
+        .repo-icon span:nth-child(1) { width: 16px; }
+        .repo-icon span:nth-child(2) { width: 10px; }
+        .repo-icon span:nth-child(3) { width: 14px; }
 
-        /* 进度条 */
-        .progress { position: fixed; top: calc(var(--safe-top) + 64px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
-        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
-
-        /* 侧边面板 */
+        /* 侧边菜单面板 */
         .side-panel {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
             z-index: 5000; display: none; flex-direction: column; padding: 60px 25px;
         }
         .side-panel.active { display: flex; }
         .panel-item { 
-            padding: 20px 0; border-bottom: 1px solid var(--border);
+            padding: 22px 0; border-bottom: 1px solid var(--border);
             font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
         .panel-item.active { color: var(--blue); font-weight: bold; }
         .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; }
 
-        /* 核心练习区 - 独立滚动，不影响底栏 */
+        /* 核心练习区 */
         #main-container { 
             flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
-            padding: 20px; padding-bottom: 120px; /* 为底部控制栏留出充足空间 */
-            position: relative;
+            padding: 20px; padding-bottom: 120px; position: relative;
         }
         #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; margin: 20px 0 10px; line-height: 1.2; word-wrap: break-word; }
         #hint-text { font-size: 0.7rem; color: #5c6370; text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 25px; }
@@ -68,9 +70,9 @@
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
         
         .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
-        #roleplay-box { font-size: 1rem; text-align: left; height: 100px; resize: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; }
+        #roleplay-box { font-size: 1rem; text-align: left; height: 100px; resize: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;}
 
-        /* 底部固定操作栏 - 绝对防遮挡 */
+        /* 底部固定操作栏 */
         footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: #0d1117; border-top: 1px solid var(--border);
@@ -80,63 +82,94 @@
         }
         .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; }
 
+        /* 进度条 */
+        .progress { position: fixed; top: calc(var(--safe-top) + 64px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
+        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
+
         /* 导入中心 */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
-        .import-card { width: 100%; max-width: 400px; text-align: center; }
-        textarea.paste-area { width: 100%; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; }
+        textarea.paste-area { width: 100%; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
         .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
         .btn-sec { background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 0.85rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
         /* 弹窗列表 */
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
-        .list-row { padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+        /* 撤销归档按钮 */
+        .restore-btn { background: none; border: 1px solid var(--blue); color: var(--blue); padding: 5px 10px; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
+
+        /* 错误反馈全屏蒙层 */
+        #error-overlay { 
+            position: fixed; inset: 0; background: var(--red); z-index: 10000; 
+            display: none; flex-direction: column; justify-content: center; align-items: center; 
+            color: #fff; padding: 20px; text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        #error-title { font-size: 3rem; font-weight: 900; letter-spacing: 5px; margin-bottom: 20px; }
+        #error-ans-box { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 8px; width: 100%; max-width: 350px;}
     </style>
 </head>
 <body>
 
+<div id="error-overlay" onclick="closeErrorOverlay()">
+    <div id="error-title">WRONG</div>
+    <div id="error-ans-box">
+        <div style="font-size: 0.8rem; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 10px;">Correct Answer</div>
+        <div id="error-ans-text" style="font-size: 1.5rem; font-weight: bold;">---</div>
+    </div>
+    <div style="margin-top: 40px; font-size: 0.7rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 2px;">Tap anywhere to continue [cite: 2026-03-10]</div>
+</div>
+
 <header>
-    <div class="icon-btn" onclick="openPanel('left')">☰</div>
-    <div style="font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; color: var(--blue);">MASTER V37</div>
-    <div class="icon-btn" onclick="openPanel('right')">📂</div>
+    <div class="icon-btn" style="font-size: 1.4rem;" onclick="openPanel('left')">☰</div>
+    <div style="font-size: 0.8rem; font-weight: bold; letter-spacing: 2px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
+    <div class="icon-btn" onclick="openPanel('right')">
+        <div class="repo-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
 </header>
 
 <div class="progress"><div id="bar-fill"></div></div>
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">SET MODE</h3>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别 (Word→Def)</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想 (Def→Word)</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写 (Perfect)</div>
-    <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战 (Role-play)</div>
-    <div class="panel-item" onclick="toggleRandom()" style="margin-top: 20px;">
-        随机模式 <span id="rand-status" style="color:var(--blue)">OFF</span>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px; text-transform: uppercase;">Set Mode</h3>
+    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别识别 (Word→Def)</div>
+    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想回想 (Def→Word)</div>
+    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写 (Perfect)</div>
+    <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战实战 (Role-play)</div>
+    <div class="panel-item" onclick="toggleRandom()" style="margin-top: 20px; border-top: 1px solid var(--border);">
+        随机模式 (Random Mode) <span id="rand-status" style="color:var(--blue)">OFF</span>
     </div>
 </div>
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px;">LIBRARY</h3>
-    <div class="panel-item" onclick="showList('all')">全量词库清单</div>
-    <div class="panel-item" onclick="showList('arc')">归档仓库 (已掌握)</div>
-    <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px;">清除所有数据 ⚠</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px; text-transform: uppercase;">Library</h3>
+    <div class="panel-item" onclick="showList('all')">全量清单 (Full List)</div>
+    <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
+    <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px; text-transform: uppercase;">重置数据 Reset</div>
 </div>
 
 <div id="import-center">
     <div class="import-card">
-        <h2 style="font-weight: 200; margin-bottom: 20px; color:#fff;">DATA <span style="color:var(--blue)">IMPORTER</span></h2>
-        <textarea id="raw-text" class="paste-area" placeholder="方案 B: 粘贴文本在此处..."></textarea>
-        <button class="btn-main" onclick="importPaste()">导入并开始内化</button>
+        <h1 style="font-weight: 200; margin-bottom: 25px; color:#fff; letter-spacing: 3px;">DANTAHIBOU</h1>
+        <textarea id="raw-text" class="paste-area" placeholder="粘贴内容...&#10;格式：&#10;Word&#10;Definition&#10;..."></textarea>
+        <button class="btn-main" onclick="importPaste()">导入并开始</button>
         
         <div class="file-grid">
-            <label for="p-in" class="btn-sec">导入 PDF</label>
-            <label for="d-in" class="btn-sec">导入 Word</label>
+            <label for="p-in" class="btn-sec">PDF 导入</label>
+            <label for="d-in" class="btn-sec">Word 导入</label>
         </div>
         <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
         <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
 
-        <button class="btn-main" style="background:none; color:#5c6370; margin-top:20px; border:none;" onclick="useCache()">使用上次缓存数据</button>
+        <button class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.8rem;" onclick="useCache()">使用上次缓存</button>
     </div>
 </div>
 
@@ -146,8 +179,8 @@
     
     <div class="opts-grid" id="btns"></div>
     <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
-    <textarea id="roleplay-box" class="input-box" placeholder="Write a sentence using this term..." autocomplete="off"></textarea>
-    <button id="submit-rp" class="btn-main" style="display:none; margin-top:10px;" onclick="move(true)">Submit Sentence</button>
+    <textarea id="roleplay-box" class="input-box" placeholder="造个应用句子..."></textarea>
+    <button id="submit-rp" class="btn-main" style="display:none; margin-top:10px;" onclick="move(true)">提交句子</button>
 </main>
 
 <footer>
@@ -162,19 +195,19 @@
 </div>
 
 <script>
-    // 捕获全局错误防止黑屏
+    // 强制错误捕获
     window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
 
-    let wordBank = JSON.parse(localStorage.getItem('v37_data')) || [];
+    let wordBank = JSON.parse(localStorage.getItem('v38_data')) || [];
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false;
 
-    // --- UI与菜单逻辑 ---
+    // --- UI 控制 ---
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
     function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; if(isRandom) shuffle(); curIdx = 0; update(); }
 
-    // --- 数据解析引擎 ---
+    // --- 数据导入 ---
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
         if(!raw) return;
@@ -199,7 +232,7 @@
                 Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
             }
             build(lines.filter(l=>l));
-        } catch(e) { alert("PDF 解析错误，请检查网络或使用粘贴功能。"); }
+        } catch(e) { alert("PDF 导入出错。"); }
     }
 
     function parseDOC(file) {
@@ -211,12 +244,12 @@
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false});
         wordBank = res;
-        localStorage.setItem('v37_data', JSON.stringify(wordBank));
+        localStorage.setItem('v38_data', JSON.stringify(wordBank));
         useCache();
     }
 
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("清除所有缓存？")) { localStorage.clear(); location.reload(); } }
+    function resetApp() { if(confirm("重置所有数据？")) { localStorage.clear(); location.reload(); } }
 
     function shuffle() {
         let arc = wordBank.filter(w => w.arc);
@@ -224,10 +257,23 @@
         wordBank = [...act, ...arc];
     }
 
+    // --- 醒目报错 UI 逻辑 ---
+    function showErrorOverlay(ans) {
+        document.getElementById('error-ans-text').innerText = ans;
+        document.getElementById('error-overlay').style.display = 'flex';
+        locked = true; // 锁定操作
+    }
+
+    function closeErrorOverlay() {
+        document.getElementById('error-overlay').style.display = 'none';
+        locked = false; // 解锁
+        checkEnd(); // 继续逻辑
+    }
+
     // --- 核心内化逻辑 ---
     function update() {
         let active = wordBank.filter(w => !w.arc);
-        if(active.length === 0) { document.getElementById('word-text').innerText = "ALL DONE"; return; }
+        if(active.length === 0) { document.getElementById('word-text').innerText = "DONE"; return; }
         if(curIdx >= active.length) { checkEnd(); return; }
 
         document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
@@ -236,31 +282,29 @@
         const item = active[curIdx];
         document.getElementById('bar-fill').style.width = (curIdx / active.length * 100) + "%";
         
-        // 隐藏所有交互区域
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
         document.getElementById('roleplay-box').style.display = 'none';
         document.getElementById('submit-rp').style.display = 'none';
         document.getElementById('main-container').scrollTop = 0;
 
-        // 根据圈层渲染
         if(circle === 1) {
             document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "Circle 1: Identify";
+            document.getElementById('hint-text').innerText = "C1: Identify识别";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.d, 'd', active);
         } else if(circle === 2) {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "Circle 2: Recall";
+            document.getElementById('hint-text').innerText = "C2: Recall回想";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.w, 'w', active);
         } else if(circle === 3) {
             document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "Circle 3: Spelling";
+            document.getElementById('hint-text').innerText = "C3: Spelling拼写";
             const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = ""; s.focus();
         } else if(circle === 4) {
             document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "Circle 4: Role-play (实战应用)";
+            document.getElementById('hint-text').innerText = "C4: Role-play实战造句";
             const r = document.getElementById('roleplay-box'); r.style.display = 'block'; r.value = ""; r.focus();
             document.getElementById('submit-rp').style.display = 'block';
         }
@@ -281,7 +325,6 @@
         });
     }
 
-    // 回车拼写校验
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
             if(e.target.value.trim().toLowerCase() === wordBank.filter(w=>!w.arc)[curIdx].w.toLowerCase()) move(true); 
@@ -290,42 +333,64 @@
     };
 
     function move(ok) {
-        locked = true; if(!ok) errors++;
-        setTimeout(() => {
-            if(ok) curIdx++; else alert("Correct Ans: " + wordBank.filter(w => !w.arc)[curIdx].w);
-            locked = false; checkEnd();
-        }, 300);
+        if(ok) {
+            curIdx++;
+            checkEnd();
+        } else {
+            errors++;
+            let correctAns = wordBank.filter(w => !w.arc)[curIdx].w;
+            showErrorOverlay(correctAns); // 替换原有的 alert
+        }
     }
 
     function checkEnd() {
+        if(locked) return; // 如果报错UI还在，不执行
         let active = wordBank.filter(w => !w.arc);
         if(curIdx >= active.length && active.length > 0) {
             if(errors === 0) { 
                 if(circle < 4) circle++; else circle = 1; 
-                curIdx = 0; if(isRandom) shuffle(); alert("Circle Mastered!"); 
+                curIdx = 0; if(isRandom) shuffle(); alert(" Circle Cleared!"); 
             }
-            else { curIdx = 0; errors = 0; alert("Requires 100% Accuracy. Restarting Circle..."); }
+            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
         }
         update();
     }
 
-    // 底部操作栏逻辑
     function skip() { if(!locked) { curIdx++; update(); } }
     function archiveCurrent() {
         let active = wordBank.filter(w => !w.arc);
         if(active[curIdx]) {
             wordBank.find(w => w.w === active[curIdx].w).arc = true;
-            localStorage.setItem('v37_data', JSON.stringify(wordBank));
+            localStorage.setItem('v38_data', JSON.stringify(wordBank));
             update();
         }
+    }
+
+    // --- 撤销归档逻辑 ---
+    function restoreWord(wToRestore) {
+        wordBank.find(w => w.w === wToRestore).arc = false;
+        localStorage.setItem('v38_data', JSON.stringify(wordBank));
+        showList('arc'); // 刷新归档列表
+        update(); // 刷新练习库
     }
 
     function showList(type) {
         closePanel('right');
         document.getElementById('modal-list').style.display = 'flex';
         let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
-        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
-        document.getElementById('list-content').innerHTML = data.map(w => `<div class="list-row"><b>${w.w}</b><br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span></div>`).join('');
+        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE (已掌握)";
+        
+        let contentHTML = data.map(w => `
+            <div class="list-row">
+                <div>
+                    <b>${w.w}</b><br>
+                    <span style="color:#5c6370; font-size:0.9rem;">${w.d}</span>
+                </div>
+                ${type === 'arc' ? `<button class="restore-btn" onclick="restoreWord('${w.w}')">撤销</button>` : ''}
+            </div>
+        `).join('');
+        
+        document.getElementById('list-content').innerHTML = contentHTML;
     }
 
     window.onload = useCache;
