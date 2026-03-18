@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V43</title>
+    <title>DANTAHIBOU V44</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -50,7 +50,6 @@
 
         #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
         
-        /* 响应式排版与收藏星标 */
         .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
         #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
         #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; transition: color 0.2s, transform 0.2s; user-select: none; display: none; }
@@ -94,18 +93,24 @@
         .restore-btn { background: none; border: none; color: #5c6370; padding: 10px; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
         .restore-btn:hover { color: var(--red); }
 
+        /* V44: 电影级克制报错弹窗 (HUD 风格) */
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: var(--red); color: #fff; font-weight: bold; letter-spacing: 3px;
-            padding: 15px 40px; border-radius: 30px; z-index: 10000; box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
-            transition: top 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+            background: rgba(13, 17, 23, 0.95); /* 深邃暗调背景 */
+            color: var(--red); font-weight: 300; letter-spacing: 5px; font-size: 0.85rem;
+            padding: 12px 28px; border-radius: 8px; /* 极简微圆角 */
+            border: 1px solid rgba(255, 68, 68, 0.6); /* 高反差警示边框 */
+            z-index: 10000; box-shadow: 0 6px 20px rgba(255, 68, 68, 0.15); /* 微弱红色辉光 */
+            backdrop-filter: blur(10px);
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            pointer-events: none; display: flex; align-items: center; gap: 10px;
         }
-        #toast-alert.show { top: calc(var(--safe-top) + 90px); }
+        #toast-alert.show { top: calc(var(--safe-top) + 85px); }
+        .toast-icon { font-size: 1.1rem; font-weight: bold; }
 
-        /* 响应式断点 */
         @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
-            #word-text { font-size: 2.8rem; } /* 电脑端字体放大 */
+            #word-text { font-size: 2.8rem; } 
             #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
             #panel-right { right: 0; left: auto; width: 420px; border-left: 1px solid var(--border); }
             .opts-grid { grid-template-columns: 1fr 1fr; }
@@ -115,7 +120,9 @@
 </head>
 <body>
 
-<div id="toast-alert">[ WRONG ]</div>
+<div id="toast-alert">
+    <span class="toast-icon">✕</span> WRONG
+</div>
 
 <div class="wrapper">
     <header>
@@ -190,8 +197,8 @@
 <script>
     window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
 
-    // 数据迁移与初始化：增加 fav 字段
-    let wordBank = JSON.parse(localStorage.getItem('v43_data')) || JSON.parse(localStorage.getItem('v42_data')) || [];
+    // 数据迁移
+    let wordBank = JSON.parse(localStorage.getItem('v44_data')) || JSON.parse(localStorage.getItem('v43_data')) || JSON.parse(localStorage.getItem('v42_data')) || [];
     wordBank.forEach(w => { if(typeof w.fav === 'undefined') w.fav = false; });
 
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
@@ -219,7 +226,7 @@
         if(!pool[curIdx]) return;
         let actualWord = wordBank.find(w => w.w === pool[curIdx].w);
         actualWord.fav = !actualWord.fav;
-        localStorage.setItem('v43_data', JSON.stringify(wordBank));
+        localStorage.setItem('v44_data', JSON.stringify(wordBank));
         updateFavIcon(actualWord.fav);
     }
 
@@ -251,7 +258,7 @@
     function build(lines) {
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false, fav: false});
-        wordBank = res; localStorage.setItem('v43_data', JSON.stringify(wordBank)); useCache();
+        wordBank = res; localStorage.setItem('v44_data', JSON.stringify(wordBank)); useCache();
     }
 
     function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
@@ -317,7 +324,6 @@
 
     function renderOpts(corr, key, pool) {
         let opts = [corr];
-        // Ensure we don't duplicate options or get stuck if pool is small
         let safetyPool = wordBank.filter(w => !w.arc); 
         while(opts.length < 4 && opts.length < safetyPool.length) {
             let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key];
@@ -349,13 +355,13 @@
         if(ok) {
             locked = true;
             const wt = document.getElementById('word-text');
-            wt.style.color = "var(--green)"; // 正反馈：单词变绿
+            wt.style.color = "var(--green)";
             setTimeout(() => {
                 wt.style.color = "#fff";
                 curIdx++; 
                 locked = false;
                 checkEnd(); 
-            }, 300); // 0.3秒多巴胺反馈时间
+            }, 300);
         } 
         else { errors++; showToast(); } 
     }
@@ -379,14 +385,14 @@
         let pool = getPool();
         if(pool[curIdx]) {
             wordBank.find(w => w.w === pool[curIdx].w).arc = true;
-            localStorage.setItem('v43_data', JSON.stringify(wordBank));
+            localStorage.setItem('v44_data', JSON.stringify(wordBank));
             update();
         }
     }
 
     function restoreWord(wToRestore) {
         wordBank.find(w => w.w === wToRestore).arc = false;
-        localStorage.setItem('v43_data', JSON.stringify(wordBank));
+        localStorage.setItem('v44_data', JSON.stringify(wordBank));
         showList('arc'); update(); 
     }
 
