@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V49</title>
+    <title>DANTAHIBOU V50</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -88,6 +88,7 @@
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
+        /* V50 激烈报错 (C1/C2使用) */
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 0.85rem;
@@ -95,6 +96,19 @@
             z-index: 10000; backdrop-filter: blur(10px); transition: top 0.4s; pointer-events: none; display: flex; align-items: center; gap: 10px;
         }
         #toast-alert.show { top: calc(var(--safe-top) + 85px); }
+
+        /* V50 治愈系柔和提示 (C3专用) */
+        #gentle-toast {
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            background: rgba(22, 27, 34, 0.95); /* 更柔和的深灰 */
+            padding: 20px 40px; border-radius: 16px; border: 1px solid #30363d;
+            z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 200px;
+        }
+        #gentle-toast.show { top: calc(var(--safe-top) + 100px); }
+        .gentle-title { font-size: 1.1rem; font-weight: 300; color: #fff; letter-spacing: 2px; margin-bottom: 8px; }
+        .gentle-sub { font-size: 0.6rem; color: rgba(255,255,255,0.4); letter-spacing: 4px; text-transform: uppercase; }
 
         .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
         
@@ -116,6 +130,10 @@
 <body>
 
 <div id="toast-alert">✕ WRONG</div>
+<div id="gentle-toast">
+    <div class="gentle-title">再试一次</div>
+    <div class="gentle-sub">TAKE YOUR TIME</div>
+</div>
 
 <div class="wrapper">
     <header>
@@ -170,365 +188,4 @@
         <div id="projects-container"></div>
     </div>
     
-    <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 10px; letter-spacing: 1px; border-top: 1px solid var(--border); padding-top: 20px;">CURRENT DATA 当前数据</div>
-    <div class="panel-item" onclick="showList('all')">全量清单 (Full List)</div>
-    <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
-</div>
-
-<div id="import-center">
-    <div class="dashboard-content">
-        <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">DANTAHIBOU</h1>
-        <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 2px;">Mirror Mirror</div>
-
-        <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000; margin-bottom:30px; display:none;" onclick="hideImporter()">
-            ⏎ 返回当前练习
-        </button>
-
-        <div id="existing-projects-area" style="display:none; margin-bottom: 40px;">
-            <div style="font-size: 0.75rem; color: var(--blue); margin-bottom: 15px; letter-spacing: 2px;">YOUR ARCHIVES 项目库</div>
-            <div id="dashboard-project-list"></div>
-        </div>
-
-        <div style="background: rgba(13,17,23,0.5); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 0.75rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px;">+ CREATE NEW 新建项目</div>
-            <input type="text" id="new-proj-name" placeholder="项目名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
-            <textarea id="raw-text" class="paste-area" placeholder="在此粘贴单词文本..."></textarea>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <label for="p-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">PDF 导入</label>
-                <label for="d-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">Word 导入</label>
-            </div>
-            <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
-            <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-            
-            <button class="btn-main" onclick="importPaste()">开始练习</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-list" class="modal-full">
-    <div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div>
-    <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-        <h2 id="list-title" style="color:var(--blue); font-weight:200; margin-bottom: 30px;">LIST</h2>
-        <div id="list-content"></div>
-    </div>
-</div>
-
-<script>
-    let projects = JSON.parse(localStorage.getItem('dh_projects')) || [];
-    let activeProjectId = localStorage.getItem('dh_active_id') || null;
-    let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
-    let spellWrongCount = 0;
-
-    if (projects.length === 0 && (localStorage.getItem('v44_data') || localStorage.getItem('v43_data'))) {
-        const oldData = JSON.parse(localStorage.getItem('v44_data')) || JSON.parse(localStorage.getItem('v43_data'));
-        const newProj = { id: Date.now(), title: "默认档案", data: oldData, curIdx: 0, circle: 1 };
-        projects.push(newProj); activeProjectId = newProj.id; saveAll();
-    }
-
-    function saveAll() {
-        localStorage.setItem('dh_projects', JSON.stringify(projects));
-        if(activeProjectId) localStorage.setItem('dh_active_id', activeProjectId);
-        else localStorage.removeItem('dh_active_id');
-    }
-
-    function syncProgress() { let p = projects.find(x => x.id == activeProjectId); if(p) { p.curIdx = curIdx; p.circle = circle; saveAll(); } }
-
-    function switchProject(id) {
-        let p = projects.find(x => x.id == id);
-        if(p) {
-            activeProjectId = id; curIdx = p.curIdx || 0; circle = p.circle || 1;
-            isFavMode = false; isRandom = false; saveAll();
-            hideImporter(); closePanel('right'); update();
-        }
-    }
-
-    function renameProject(id, event) {
-        event.stopPropagation();
-        let p = projects.find(x => x.id == id);
-        if(!p) return;
-        let newName = prompt("重命名档案：", p.title);
-        if(newName && newName.trim() !== "") {
-            p.title = newName.trim(); saveAll(); renderProjectLists();
-            if(activeProjectId == id) document.getElementById('current-project-name').innerText = p.title;
-        }
-    }
-
-    function deleteProject(id, event) {
-        event.stopPropagation();
-        if(!confirm("确定彻底删除该存档？")) return;
-        projects = projects.filter(x => x.id != id);
-        if(activeProjectId == id) {
-            activeProjectId = projects.length > 0 ? projects[0].id : null;
-            if(activeProjectId) { switchProject(activeProjectId); }
-            else { update(); } 
-        }
-        saveAll();
-        renderProjectLists();
-    }
-
-    function showImporter() { 
-        document.getElementById('import-center').style.display='flex'; 
-        renderProjectLists(); closePanel('left'); 
-    }
-    
-    function hideImporter() { if(activeProjectId) document.getElementById('import-center').style.display='none'; }
-
-    function renderProjectLists() {
-        const rList = document.getElementById('projects-container');
-        rList.innerHTML = projects.map(p => `
-            <div class="panel-item ${p.id == activeProjectId ? 'active' : ''}" onclick="switchProject(${p.id})">
-                <div style="flex:1;">${p.title} <span class="proj-badge">${p.data.length} 词</span></div>
-                <div class="action-group">
-                    <div class="action-btn edit" onclick="renameProject(${p.id}, event)">
-                        <svg class="action-icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    </div>
-                    <div class="action-btn del" onclick="deleteProject(${p.id}, event)">
-                        <svg class="action-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        const dListArea = document.getElementById('existing-projects-area');
-        const dList = document.getElementById('dashboard-project-list');
-        const retBtn = document.getElementById('btn-return-active');
-
-        if(projects.length > 0) {
-            dListArea.style.display = 'block';
-            dList.innerHTML = projects.map(p => `
-                <div class="archive-card ${p.id == activeProjectId ? 'active-card' : ''}" onclick="switchProject(${p.id})">
-                    <div>
-                        <div class="archive-title">${p.title}</div>
-                        <div class="archive-meta">Circle ${p.circle} • 进度 ${p.curIdx}/${p.data.length}</div>
-                    </div>
-                    <div style="color:${p.id == activeProjectId ? 'var(--green)' : 'var(--blue)'}; font-size:1rem; font-weight:bold;">
-                        ${p.id == activeProjectId ? '当前' : '→'}
-                    </div>
-                </div>
-            `).join('');
-        } else { dListArea.style.display = 'none'; }
-
-        if(activeProjectId) {
-            let activeP = projects.find(x => x.id == activeProjectId);
-            if(activeP) { retBtn.innerText = `⏎ 返回继续：${activeP.title}`; retBtn.style.display = 'block'; }
-        } else { retBtn.style.display = 'none'; }
-    }
-
-    function openPanel(p) { if(p === 'right') renderProjectLists(); document.getElementById('panel-'+p).classList.add('active'); }
-    function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
-    function setCircle(n) { circle = n; curIdx = 0; errors = 0; syncProgress(); closePanel('left'); update(); }
-    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; update(); }
-    function toggleFavMode() { isFavMode = !isFavMode; document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF"; curIdx = 0; update(); }
-
-    function importPaste() {
-        const raw = document.getElementById('raw-text').value.trim();
-        const title = document.getElementById('new-proj-name').value.trim() || `文档 ${new Date().toLocaleDateString()}`;
-        if(!raw) return; build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
-    }
-
-    function build(lines, title) {
-        let res = [];
-        for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false, fav: false});
-        const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
-        projects.push(newProj); activeProjectId = newProj.id; saveAll();
-        document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
-        switchProject(newProj.id);
-    }
-
-    function cleanWord(w) {
-        return w.replace(/\b(n\.|v\.|adj\.|adv\.|prep\.|pron\.|conj\.|interj\.)\b/gi, '').replace(/[()（）]/g, '').trim();
-    }
-
-    function move(ok) {
-        let pool = getPool();
-        if(ok) {
-            locked = true; spellWrongCount = 0;
-            document.getElementById('word-text').style.color = "var(--green)";
-            setTimeout(() => { document.getElementById('word-text').style.color = "#fff"; curIdx++; locked = false; syncProgress(); checkEnd(); }, 300);
-        } 
-        else {
-            errors++;
-            if(circle === 3) {
-                spellWrongCount++;
-                if(spellWrongCount === 1) {
-                    const t = document.getElementById('toast-alert');
-                    t.innerHTML = "TRY AGAIN 再试一次"; 
-                    t.classList.add('show');
-                    setTimeout(() => t.classList.remove('show'), 1500);
-                }
-                else {
-                    const t = document.getElementById('toast-alert');
-                    t.innerHTML = `<span style="color:#5c6370; font-size:0.7rem;">ANS:</span> ${pool[curIdx].w}`;
-                    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
-                    spellWrongCount = 0;
-                }
-            } else {
-                const t = document.getElementById('toast-alert');
-                t.innerHTML = "✕ WRONG"; t.classList.add('show');
-                setTimeout(() => t.classList.remove('show'), 1200);
-            }
-        } 
-    }
-
-    function update() {
-        let p = projects.find(x => x.id == activeProjectId);
-        if(!p) { 
-            document.getElementById('current-project-name').innerText = "NO PROJECT";
-            document.getElementById('word-text').innerText = "NO DATA";
-            document.getElementById('fav-btn').style.display = 'none';
-            document.getElementById('btns').style.display = 'none';
-            document.getElementById('spell-box').style.display = 'none';
-            document.getElementById('roleplay-box').style.display = 'none';
-            document.getElementById('submit-rp').style.display = 'none';
-            return; 
-        }
-        
-        document.getElementById('current-project-name').innerText = p.title;
-        let pool = getPool();
-        
-        if(pool.length === 0) { 
-            document.getElementById('word-text').innerText = isFavMode ? "NO FAVORITES" : "ALL CLEAR"; 
-            document.getElementById('fav-btn').style.display = 'none';
-            document.getElementById('btns').style.display = 'none';
-            document.getElementById('spell-box').style.display = 'none';
-            document.getElementById('roleplay-box').style.display = 'none';
-            document.getElementById('submit-rp').style.display = 'none';
-            return; 
-        }
-
-        if(curIdx >= pool.length) { checkEnd(); return; }
-
-        const item = pool[curIdx];
-        document.getElementById('bar-fill').style.width = (curIdx / pool.length * 100) + "%";
-        document.getElementById('word-text').innerText = (circle === 1 || circle === 4) ? item.w : item.d;
-        document.getElementById('fav-btn').innerText = item.fav ? "★" : "☆";
-        document.getElementById('fav-btn').style.color = item.fav ? "var(--blue)" : "#5c6370";
-        document.getElementById('fav-btn').style.display = 'block';
-        
-        document.getElementById('btns').style.display = 'none';
-        document.getElementById('spell-box').style.display = 'none';
-        document.getElementById('roleplay-box').style.display = 'none';
-        document.getElementById('submit-rp').style.display = 'none';
-
-        if(circle === 1 || circle === 2) {
-            document.getElementById('btns').style.display = 'grid';
-            renderOpts(circle === 1 ? item.d : item.w, circle === 1 ? 'd' : 'w', p.data);
-        } else if(circle === 3) {
-            document.getElementById('spell-box').style.display = 'block';
-            document.getElementById('spell-box').value = ""; document.getElementById('spell-box').focus();
-        } else if(circle === 4) {
-            document.getElementById('roleplay-box').style.display = 'block';
-            document.getElementById('submit-rp').style.display = 'block';
-            document.getElementById('roleplay-box').value = "";
-        }
-        
-        document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
-        if(document.getElementById('m'+circle)) document.getElementById('m'+circle).classList.add('active');
-    }
-
-    function renderOpts(corr, key, allData) {
-        let opts = [corr];
-        let safetyPool = allData.filter(w=>!w.arc);
-        while(opts.length < 4 && opts.length < safetyPool.length) {
-            let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key];
-            if(!opts.includes(r)) opts.push(r);
-        }
-        opts.sort(() => Math.random() - 0.5);
-        const area = document.getElementById('btns'); area.innerHTML = '';
-        opts.forEach(o => {
-            const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { if(!locked) { if(o === corr) move(true); else { b.classList.add('wrong-shake'); move(false); setTimeout(()=>b.classList.remove('wrong-shake'),400); } } };
-            area.appendChild(b);
-        });
-    }
-
-    document.getElementById('spell-box').onkeydown = e => { 
-        if(e.key === 'Enter' && !locked) { 
-            let pool = getPool();
-            let expectedWord = cleanWord(pool[curIdx].w).toLowerCase();
-            let typedWord = e.target.value.trim().toLowerCase();
-            
-            if(typedWord === expectedWord) move(true); 
-            else move(false); 
-        } 
-    };
-
-    function getPool() {
-        let p = projects.find(x => x.id == activeProjectId);
-        if(!p) return [];
-        let pool = p.data.filter(w => !w.arc);
-        if(isFavMode) pool = pool.filter(w => w.fav);
-        return pool;
-    }
-
-    function checkEnd() {
-        let pool = getPool();
-        if(curIdx >= pool.length && pool.length > 0) {
-            if(errors === 0) { circle = circle < 4 ? circle + 1 : 1; curIdx = 0; alert("Circle Cleared!"); }
-            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
-            syncProgress();
-        }
-        update();
-    }
-
-    function skip() { curIdx++; syncProgress(); update(); }
-    
-    function archiveCurrent() {
-        let pool = getPool();
-        if(pool[curIdx]) {
-            let p = projects.find(x => x.id == activeProjectId);
-            p.data.find(w => w.w === pool[curIdx].w).arc = true;
-            saveAll(); update();
-        }
-    }
-    
-    function toggleFavCurrent() {
-        let pool = getPool();
-        let p = projects.find(x => x.id == activeProjectId);
-        let word = p.data.find(w => w.w === pool[curIdx].w);
-        word.fav = !word.fav;
-        saveAll(); update();
-    }
-    
-    function restoreWord(w) {
-        let p = projects.find(x => x.id == activeProjectId);
-        p.data.find(x => x.w === w).arc = false;
-        saveAll(); showList('arc'); update();
-    }
-
-    function showList(type) {
-        closePanel('right'); document.getElementById('modal-list').style.display = 'flex';
-        let p = projects.find(x => x.id == activeProjectId);
-        let data = (type==='all') ? p.data : p.data.filter(w=>w.arc);
-        document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
-        document.getElementById('list-content').innerHTML = data.map(w => `
-            <div class="list-row">
-                <div><b>${w.w}</b> ${w.fav ? '<span style="color:var(--blue)">★</span>' : ''}<br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span></div>
-                ${type === 'arc' ? `<button style="background:none; border:none; color:#5c6370; font-size:1.5rem; cursor:pointer;" onclick="restoreWord('${w.w}')">✕</button>` : ''}
-            </div>
-        `).join('');
-    }
-
-    window.onload = () => { if(activeProjectId) update(); else showImporter(); };
-
-    async function parsePDF(file) {
-        const title = document.getElementById('new-proj-name').value.trim() || file.name.replace('.pdf', '');
-        const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(buf).promise; let lines = [];
-        for(let i=1; i<=pdf.numPages; i++) {
-            const page = await pdf.getPage(i); const content = await page.getTextContent(); let yMap = {};
-            content.items.forEach(it => {
-                let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
-                if (matchedY) yMap[matchedY].push({x: it.transform[4], s: it.str}); else yMap[y] = [{x: it.transform[4], s: it.str}];
-            });
-            Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
-        }
-        build(lines.filter(l=>l), title);
-    }
-    function parseDOC(file) {
-        const title = document.getElementById('new-proj-name').value.trim() || file.name.replace('.docx', '');
-        file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim()), title)));
-    }
-</script>
-</body>
-</html>
+    <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 10px;
