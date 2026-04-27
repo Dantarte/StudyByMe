@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V46</title>
+    <title>DANTAHIBOU V47</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -73,17 +73,17 @@
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
 
-        /* 主控大厅 */
+        /* 主控大厅重构 V47 */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; padding: calc(var(--safe-top) + 40px) 25px; overflow-y: auto; align-items: center; }
-        .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; }
+        .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; padding-bottom: 50px;}
         
-        /* 存档列表样式 */
         .archive-card { background: #0d1117; border: 1px solid var(--border); border-radius: 12px; padding: 15px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
         .archive-card:hover { border-color: var(--blue); }
+        .archive-card.active-card { border-color: var(--green); background: rgba(152, 195, 121, 0.05); }
         .archive-title { font-weight: bold; font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
         .archive-meta { font-size: 0.75rem; color: #5c6370; }
 
-        textarea.paste-area { width: 100%; height: 120px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
+        textarea.paste-area { width: 100%; height: 120px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
         .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
@@ -107,7 +107,6 @@
 
         .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
         .rename-btn { background: none; border: none; color: #5c6370; font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        .rename-btn:hover { color: var(--blue); }
 
         @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
@@ -187,15 +186,19 @@
         <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">DANTAHIBOU</h1>
         <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px;">CONTROL ROOM</div>
 
+        <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000; margin-bottom:30px; display:none;" onclick="hideImporter()">
+            ⏎ 返回当前练习
+        </button>
+
         <div id="existing-projects-area" style="display:none; margin-bottom: 40px;">
-            <div style="font-size: 0.75rem; color: var(--blue); margin-bottom: 15px; letter-spacing: 2px;">YOUR PROJECTS 您的存档</div>
+            <div style="font-size: 0.75rem; color: var(--blue); margin-bottom: 15px; letter-spacing: 2px;">YOUR ARCHIVES 项目库</div>
             <div id="dashboard-project-list"></div>
         </div>
 
         <div style="background: rgba(13,17,23,0.5); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 0.75rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px;">+ NEW PROJECT 新建项目</div>
+            <div style="font-size: 0.75rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px;">+ CREATE NEW 新建项目</div>
             <input type="text" id="new-proj-name" placeholder="项目名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
-            <textarea id="raw-text" class="paste-area" placeholder="粘贴文本..."></textarea>
+            <textarea id="raw-text" class="paste-area" placeholder="在此粘贴单词文本..."></textarea>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                 <label for="p-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">PDF 导入</label>
@@ -204,10 +207,8 @@
             <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
             <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
             
-            <button class="btn-main" onclick="importPaste()">导入并开始</button>
+            <button class="btn-main" onclick="importPaste()">开始内化</button>
         </div>
-
-        <button id="cancel-import" class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.85rem; margin-top: 15px; display:none;" onclick="hideImporter()">取消返回</button>
     </div>
 </div>
 
@@ -220,19 +221,16 @@
 </div>
 
 <script>
-    // --- 核心数据框架 ---
     let projects = JSON.parse(localStorage.getItem('dh_projects')) || [];
     let activeProjectId = localStorage.getItem('dh_active_id') || null;
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
     let spellWrongCount = 0;
 
-    // 旧版数据平滑迁移
+    // 旧数据迁移
     if (projects.length === 0 && (localStorage.getItem('v44_data') || localStorage.getItem('v43_data'))) {
         const oldData = JSON.parse(localStorage.getItem('v44_data')) || JSON.parse(localStorage.getItem('v43_data'));
-        const newProj = { id: Date.now(), title: "默认词库", data: oldData, curIdx: 0, circle: 1 };
-        projects.push(newProj);
-        activeProjectId = newProj.id;
-        saveAll();
+        const newProj = { id: Date.now(), title: "默认档案", data: oldData, curIdx: 0, circle: 1 };
+        projects.push(newProj); activeProjectId = newProj.id; saveAll();
     }
 
     function saveAll() {
@@ -241,34 +239,24 @@
         else localStorage.removeItem('dh_active_id');
     }
 
-    function syncProgress() {
-        let p = projects.find(x => x.id == activeProjectId);
-        if(p) { p.curIdx = curIdx; p.circle = circle; saveAll(); }
-    }
+    function syncProgress() { let p = projects.find(x => x.id == activeProjectId); if(p) { p.curIdx = curIdx; p.circle = circle; saveAll(); } }
 
-    // --- 项目控制逻辑 ---
     function switchProject(id) {
         let p = projects.find(x => x.id == id);
         if(p) {
-            activeProjectId = id;
-            curIdx = p.curIdx || 0;
-            circle = p.circle || 1;
-            isFavMode = false; isRandom = false; // 切换项目重置模式
-            saveAll();
-            hideImporter(); closePanel('right');
-            update();
+            activeProjectId = id; curIdx = p.curIdx || 0; circle = p.circle || 1;
+            isFavMode = false; isRandom = false; saveAll();
+            hideImporter(); closePanel('right'); update();
         }
     }
 
     function renameProject(id, event) {
-        event.stopPropagation(); // 防止触发点击进入项目
+        event.stopPropagation();
         let p = projects.find(x => x.id == id);
         if(!p) return;
-        let newName = prompt("为存档输入新的名称：", p.title);
+        let newName = prompt("重命名档案：", p.title);
         if(newName && newName.trim() !== "") {
-            p.title = newName.trim();
-            saveAll();
-            renderProjectLists();
+            p.title = newName.trim(); saveAll(); renderProjectLists();
             if(activeProjectId == id) document.getElementById('current-project-name').innerText = p.title;
         }
     }
@@ -276,25 +264,20 @@
     function deleteCurrentProject() {
         if(!confirm("确定彻底删除当前项目？数据无法恢复！")) return;
         projects = projects.filter(x => x.id != activeProjectId);
-        activeProjectId = null;
-        saveAll();
-        closePanel('right');
-        showImporter(); // 删除后安全退回主控大厅
+        activeProjectId = projects.length > 0 ? projects[0].id : null; // 如果还有别的项目，切到第一个，否则留空
+        saveAll(); closePanel('right'); 
+        if(activeProjectId) switchProject(activeProjectId);
+        else showImporter(); 
     }
 
     function showImporter() { 
         document.getElementById('import-center').style.display='flex'; 
-        document.getElementById('cancel-import').style.display = activeProjectId ? 'block' : 'none';
-        renderProjectLists();
-        closePanel('left'); 
+        renderProjectLists(); closePanel('left'); 
     }
     
-    function hideImporter() { 
-        if(activeProjectId) document.getElementById('import-center').style.display='none'; 
-    }
+    function hideImporter() { if(activeProjectId) document.getElementById('import-center').style.display='none'; }
 
     function renderProjectLists() {
-        // 渲染右侧菜单里的项目列表
         const rList = document.getElementById('projects-container');
         rList.innerHTML = projects.map(p => `
             <div class="panel-item ${p.id == activeProjectId ? 'active' : ''}" onclick="switchProject(${p.id})">
@@ -303,26 +286,35 @@
             </div>
         `).join('');
 
-        // 渲染主控大厅里的项目列表
         const dListArea = document.getElementById('existing-projects-area');
         const dList = document.getElementById('dashboard-project-list');
+        const retBtn = document.getElementById('btn-return-active');
+
         if(projects.length > 0) {
             dListArea.style.display = 'block';
             dList.innerHTML = projects.map(p => `
-                <div class="archive-card" onclick="switchProject(${p.id})">
+                <div class="archive-card ${p.id == activeProjectId ? 'active-card' : ''}" onclick="switchProject(${p.id})">
                     <div>
                         <div class="archive-title">${p.title}</div>
                         <div class="archive-meta">Circle ${p.circle} • 进度 ${p.curIdx}/${p.data.length}</div>
                     </div>
-                    <div style="color:var(--blue); font-size:1.2rem;">→</div>
+                    <div style="color:${p.id == activeProjectId ? 'var(--green)' : 'var(--blue)'}; font-size:1rem; font-weight:bold;">
+                        ${p.id == activeProjectId ? '当前' : '→'}
+                    </div>
                 </div>
             `).join('');
-        } else {
-            dListArea.style.display = 'none';
-        }
+        } else { dListArea.style.display = 'none'; }
+
+        // 处理置顶返回按钮
+        if(activeProjectId) {
+            let activeP = projects.find(x => x.id == activeProjectId);
+            if(activeP) {
+                retBtn.innerText = `⏎ 返回继续：${activeP.title}`;
+                retBtn.style.display = 'block';
+            }
+        } else { retBtn.style.display = 'none'; }
     }
 
-    // --- UI/练习逻辑 ---
     function openPanel(p) { if(p === 'right') renderProjectLists(); document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; syncProgress(); closePanel('left'); update(); }
@@ -331,30 +323,22 @@
 
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
-        const title = document.getElementById('new-proj-name').value.trim() || `新项目 ${new Date().toLocaleDateString()}`;
-        if(!raw) return;
-        build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
+        const title = document.getElementById('new-proj-name').value.trim() || `文档 ${new Date().toLocaleDateString()}`;
+        if(!raw) return; build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
     }
 
     function build(lines, title) {
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false, fav: false});
         const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
-        projects.push(newProj);
-        activeProjectId = newProj.id;
-        saveAll();
-        document.getElementById('raw-text').value = '';
-        document.getElementById('new-proj-name').value = '';
+        projects.push(newProj); activeProjectId = newProj.id; saveAll();
+        document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
         switchProject(newProj.id);
     }
 
-    // --- C3 提示逻辑 ---
     function showHint(word) {
-        if(word.length <= 2) {
-            document.getElementById('hint-content').innerText = word[0] + " ...";
-        } else {
-            document.getElementById('hint-content').innerText = word[0].toUpperCase() + " _ ".repeat(word.length-2) + word[word.length-1].toUpperCase();
-        }
+        if(word.length <= 2) document.getElementById('hint-content').innerText = word[0] + " ...";
+        else document.getElementById('hint-content').innerText = word[0].toUpperCase() + " _ ".repeat(word.length-2) + word[word.length-1].toUpperCase();
         document.getElementById('hint-alert').classList.add('show');
         setTimeout(() => document.getElementById('hint-alert').classList.remove('show'), 2500);
     }
@@ -364,10 +348,7 @@
         if(ok) {
             locked = true; spellWrongCount = 0;
             document.getElementById('word-text').style.color = "var(--green)";
-            setTimeout(() => {
-                document.getElementById('word-text').style.color = "#fff";
-                curIdx++; locked = false; syncProgress(); checkEnd(); 
-            }, 300);
+            setTimeout(() => { document.getElementById('word-text').style.color = "#fff"; curIdx++; locked = false; syncProgress(); checkEnd(); }, 300);
         } 
         else {
             errors++;
@@ -377,8 +358,7 @@
                 else {
                     const t = document.getElementById('toast-alert');
                     t.innerHTML = `<span style="color:#5c6370; font-size:0.7rem;">ANS:</span> ${pool[curIdx].w}`;
-                    t.classList.add('show');
-                    setTimeout(() => t.classList.remove('show'), 2500);
+                    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
                     spellWrongCount = 0;
                 }
             } else {
@@ -478,29 +458,9 @@
     }
 
     function skip() { curIdx++; syncProgress(); update(); }
-    
-    function archiveCurrent() {
-        let pool = getPool();
-        if(pool[curIdx]) {
-            let p = projects.find(x => x.id == activeProjectId);
-            p.data.find(w => w.w === pool[curIdx].w).arc = true;
-            saveAll(); update();
-        }
-    }
-    
-    function toggleFavCurrent() {
-        let pool = getPool();
-        let p = projects.find(x => x.id == activeProjectId);
-        let word = p.data.find(w => w.w === pool[curIdx].w);
-        word.fav = !word.fav;
-        saveAll(); update();
-    }
-    
-    function restoreWord(w) {
-        let p = projects.find(x => x.id == activeProjectId);
-        p.data.find(x => x.w === w).arc = false;
-        saveAll(); showList('arc'); update();
-    }
+    function archiveCurrent() { let pool = getPool(); if(pool[curIdx]) { let p = projects.find(x => x.id == activeProjectId); p.data.find(w => w.w === pool[curIdx].w).arc = true; saveAll(); update(); } }
+    function toggleFavCurrent() { let pool = getPool(); let p = projects.find(x => x.id == activeProjectId); let word = p.data.find(w => w.w === pool[curIdx].w); word.fav = !word.fav; saveAll(); update(); }
+    function restoreWord(w) { let p = projects.find(x => x.id == activeProjectId); p.data.find(x => x.w === w).arc = false; saveAll(); showList('arc'); update(); }
 
     function showList(type) {
         closePanel('right'); document.getElementById('modal-list').style.display = 'flex';
@@ -515,10 +475,7 @@
         `).join('');
     }
 
-    window.onload = () => { 
-        if(activeProjectId) { update(); } 
-        else { showImporter(); } 
-    };
+    window.onload = () => { if(activeProjectId) update(); else showImporter(); };
 
     async function parsePDF(file) {
         const title = document.getElementById('new-proj-name').value.trim() || file.name.replace('.pdf', '');
