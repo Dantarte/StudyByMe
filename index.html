@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V44</title>
+    <title>DANTAHIBOU V45</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -28,9 +28,8 @@
             background: rgba(13, 17, 23, 0.9); border-bottom: 1px solid var(--border);
             flex-shrink: 0; z-index: 200; backdrop-filter: blur(10px);
         }
-        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: color 0.2s; }
-        .icon-btn:hover { color: #fff; }
-        
+        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
         .repo-icon { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
         .repo-icon span { display: block; height: 2px; background: currentColor; border-radius: 1px; transition: 0.2s; }
         .repo-icon span:nth-child(1) { width: 16px; }
@@ -38,75 +37,66 @@
         .repo-icon span:nth-child(3) { width: 14px; }
 
         .side-panel {
-            position: fixed; top: 0; bottom: 0; background: rgba(0,0,0,0.95);
-            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px; backdrop-filter: blur(15px);
+            position: fixed; top: 0; bottom: 0; background: rgba(0,0,0,0.96);
+            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px; backdrop-filter: blur(15px); overflow-y: auto;
         }
         .side-panel.active { display: flex; }
-        .panel-item { padding: 22px 0; border-bottom: 1px solid var(--border); font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
-        .panel-item:hover { color: var(--blue); }
+        .panel-item { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .panel-item.active { color: var(--blue); font-weight: bold; }
-        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; transition: color 0.2s; }
-        .close-btn:hover { color: #fff; }
+        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; }
 
         #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
         
         .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
-        #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; transition: color 0.2s, transform 0.2s; user-select: none; display: none; }
-        #fav-btn:active { transform: scale(1.3); }
+        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; }
+        #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; }
         
         #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
         .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
-        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
-        button.choice:hover { border-color: var(--blue); background: #1c2128; }
-        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important; }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; }
+        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; transition: border-color 0.2s; }
-        .input-box:focus { border-color: var(--green); }
-        #roleplay-box { font-size: 1.1rem; text-align: left; height: 120px; resize: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;}
+        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
 
         footer {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
             background: #0d1117; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; transition: color 0.2s; }
-        .footer-btn:hover { color: #fff; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; }
 
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
 
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; }
-        textarea.paste-area { width: 100%; max-width: 600px; height: 180px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 20px; border-radius: 12px; font-size: 1.05rem; margin-bottom: 20px; resize: none; font-family: inherit;}
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; max-width: 400px; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
-        .btn-main:hover { opacity: 0.8; }
-        .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; width: 100%; max-width: 400px; }
-        .btn-sec { background: #333; color: #fff; border: none; padding: 15px; border-radius: 10px; font-size: 0.9rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .btn-sec:hover { background: #444; }
+        textarea.paste-area { width: 100%; max-width: 600px; height: 150px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; max-width: 400px; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .restore-btn { background: none; border: none; color: #5c6370; padding: 10px; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-        .restore-btn:hover { color: var(--red); }
 
-        /* V44: 电影级克制报错弹窗 (HUD 风格) */
+        /* HUD 风格报错与提示 */
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(13, 17, 23, 0.95); /* 深邃暗调背景 */
-            color: var(--red); font-weight: 300; letter-spacing: 5px; font-size: 0.85rem;
-            padding: 12px 28px; border-radius: 8px; /* 极简微圆角 */
-            border: 1px solid rgba(255, 68, 68, 0.6); /* 高反差警示边框 */
-            z-index: 10000; box-shadow: 0 6px 20px rgba(255, 68, 68, 0.15); /* 微弱红色辉光 */
-            backdrop-filter: blur(10px);
-            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            pointer-events: none; display: flex; align-items: center; gap: 10px;
+            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 5px; font-size: 0.85rem;
+            padding: 12px 28px; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.6);
+            z-index: 10000; backdrop-filter: blur(10px); transition: top 0.4s; pointer-events: none; display: flex; align-items: center; gap: 10px;
         }
         #toast-alert.show { top: calc(var(--safe-top) + 85px); }
-        .toast-icon { font-size: 1.1rem; font-weight: bold; }
+
+        #hint-alert {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: rgba(13, 17, 23, 0.95); color: var(--blue); font-weight: 300; letter-spacing: 5px;
+            padding: 12px 28px; border-radius: 8px; border: 1px solid var(--blue);
+            z-index: 10000; backdrop-filter: blur(10px); transition: top 0.4s; pointer-events: none;
+        }
+        #hint-alert.show { top: calc(var(--safe-top) + 85px); }
+
+        .proj-badge { font-size: 0.6rem; background: var(--border); color: #5c6370; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
 
         @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
@@ -114,20 +104,21 @@
             #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
             #panel-right { right: 0; left: auto; width: 420px; border-left: 1px solid var(--border); }
             .opts-grid { grid-template-columns: 1fr 1fr; }
-            .modal-full { padding: 80px 20%; }
         }
     </style>
 </head>
 <body>
 
-<div id="toast-alert">
-    <span class="toast-icon">✕</span> WRONG
-</div>
+<div id="toast-alert">✕ WRONG</div>
+<div id="hint-alert">HINT: <span id="hint-content">---</span></div>
 
 <div class="wrapper">
     <header>
         <div class="icon-btn" style="font-size: 1.5rem;" onclick="openPanel('left')">☰</div>
-        <div style="font-size: 0.85rem; font-weight: bold; letter-spacing: 3px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
+        <div style="text-align: center;">
+            <div style="font-size: 0.85rem; font-weight: bold; letter-spacing: 3px; color: var(--blue); text-transform: uppercase;">DANTAHIBOU</div>
+            <div id="current-project-name" style="font-size: 0.5rem; color: #5c6370; letter-spacing: 1px;">NO PROJECT</div>
+        </div>
         <div class="icon-btn" onclick="openPanel('right')"><div class="repo-icon"><span></span><span></span><span></span></div></div>
     </header>
 
@@ -141,7 +132,7 @@
         <div id="hint-text">Waiting</div>
         <div class="opts-grid" id="btns"></div>
         <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
-        <textarea id="roleplay-box" class="input-box" placeholder="Write a sentence using this term..."></textarea>
+        <textarea id="roleplay-box" class="input-box" style="font-size:1rem; text-align:left; height:120px; resize:none; padding:15px; border:1px solid var(--border); border-radius:8px; font-family:inherit;" placeholder="Write a sentence using this term..."></textarea>
         <button id="submit-rp" class="btn-main" style="display:none; margin: 15px auto 0; max-width: 200px;" onclick="move(true)">SUBMIT</button>
     </main>
 
@@ -153,37 +144,45 @@
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px; text-transform: uppercase;">Set Mode</h3>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别识别 (Word→Def)</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想回想 (Def→Word)</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写拼写 (Perfect)</div>
-    <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战实战 (Role-play)</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase;">Set Mode</h3>
+    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别 (Identify)</div>
+    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想 (Recall)</div>
+    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写 (Spelling)</div>
+    <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战 (Role-play)</div>
     
     <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 10px;">
         <div class="panel-item" onclick="toggleRandom()">随机模式 <span id="rand-status" style="color:#5c6370">OFF</span></div>
         <div class="panel-item" onclick="toggleFavMode()">收藏训练 <span id="fav-status" style="color:#5c6370">OFF</span></div>
+        <div class="panel-item" onclick="showImporter()" style="color:var(--blue); margin-top:20px; border:none;">+ 导入新项目</div>
     </div>
 </div>
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 30px; text-transform: uppercase;">Library</h3>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase;">Library</h3>
+    <div id="project-list-area" style="margin-bottom: 30px;">
+        <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 15px; letter-spacing: 1px;">SWITCH PROJECT 项目切换</div>
+        <div id="projects-container"></div>
+    </div>
+    
+    <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 10px; letter-spacing: 1px;">CURRENT PROJECT DATA</div>
     <div class="panel-item" onclick="showList('all')">全量清单 (Full List)</div>
     <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
-    <div class="panel-item" onclick="resetApp()" style="color:var(--red); border:none; margin-top:50px; text-transform: uppercase;">重置数据 Reset</div>
+    <div class="panel-item" onclick="deleteCurrentProject()" style="color:var(--red); border:none; margin-top:40px;">删除当前项目 DELETE</div>
 </div>
 
 <div id="import-center">
     <h1 style="font-weight: 200; margin-bottom: 30px; color:#fff; letter-spacing: 4px;">DANTAHIBOU</h1>
+    <input type="text" id="new-proj-name" placeholder="项目名称 (如: 商务英语)" style="width: 100%; max-width: 400px; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
     <textarea id="raw-text" class="paste-area" placeholder="粘贴单词本内容..."></textarea>
-    <button class="btn-main" onclick="importPaste()">导入并开始</button>
-    <div class="file-grid">
-        <label for="p-in" class="btn-sec">PDF 导入</label>
-        <label for="d-in" class="btn-sec">Word 导入</label>
+    <button class="btn-main" onclick="importPaste()">开始内化</button>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; margin-top: 15px;">
+        <label for="p-in" style="background:#333; color:#fff; padding:15px; border-radius:10px; text-align:center; font-size:0.9rem; cursor:pointer;">PDF 导入</label>
+        <label for="d-in" style="background:#333; color:#fff; padding:15px; border-radius:10px; text-align:center; font-size:0.9rem; cursor:pointer;">Word 导入</label>
     </div>
     <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
     <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-    <button class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.85rem; margin-top: 20px;" onclick="useCache()">使用上次缓存</button>
+    <button id="cancel-import" class="btn-main" style="background:none; color:#5c6370; border:none; font-size: 0.85rem; margin-top: 20px; display:none;" onclick="hideImporter()">取消</button>
 </div>
 
 <div id="modal-list" class="modal-full">
@@ -195,150 +194,197 @@
 </div>
 
 <script>
-    window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
-
-    // 数据迁移
-    let wordBank = JSON.parse(localStorage.getItem('v44_data')) || JSON.parse(localStorage.getItem('v43_data')) || JSON.parse(localStorage.getItem('v42_data')) || [];
-    wordBank.forEach(w => { if(typeof w.fav === 'undefined') w.fav = false; });
-
+    // --- 多项目管理引擎 ---
+    let projects = JSON.parse(localStorage.getItem('dh_projects')) || [];
+    let activeProjectId = localStorage.getItem('dh_active_id') || null;
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
+    let spellWrongCount = 0; // 记录当前词拼写错误次数
 
-    function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); }
+    // 初始化：如果只有一个老数据，自动迁移
+    if (projects.length === 0 && localStorage.getItem('v44_data')) {
+        const oldData = JSON.parse(localStorage.getItem('v44_data'));
+        const newProj = { id: Date.now(), title: "Legacy Library", data: oldData, curIdx: 0, circle: 1 };
+        projects.push(newProj);
+        activeProjectId = newProj.id;
+        saveAll();
+    }
+
+    function saveAll() {
+        localStorage.setItem('dh_projects', JSON.stringify(projects));
+        localStorage.setItem('dh_active_id', activeProjectId);
+    }
+
+    function syncProgress() {
+        let p = projects.find(x => x.id == activeProjectId);
+        if(p) {
+            p.curIdx = curIdx;
+            p.circle = circle;
+            saveAll();
+        }
+    }
+
+    function switchProject(id) {
+        let p = projects.find(x => x.id == id);
+        if(p) {
+            activeProjectId = id;
+            curIdx = p.curIdx || 0;
+            circle = p.circle || 1;
+            saveAll();
+            closePanel('right');
+            update();
+        }
+    }
+
+    function deleteCurrentProject() {
+        if(!confirm("确定彻底删除当前项目？")) return;
+        projects = projects.filter(x => x.id != activeProjectId);
+        activeProjectId = projects.length > 0 ? projects[0].id : null;
+        saveAll();
+        location.reload();
+    }
+
+    function showImporter() { document.getElementById('import-center').style.display='flex'; document.getElementById('cancel-import').style.display='block'; closePanel('left'); }
+    function hideImporter() { document.getElementById('import-center').style.display='none'; }
+
+    // --- UI/练习逻辑 ---
+    function openPanel(p) { 
+        if(p === 'right') renderProjectList();
+        document.getElementById('panel-'+p).classList.add('active'); 
+    }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
-    function setCircle(n) { circle = n; curIdx = 0; errors = 0; closePanel('left'); update(); }
-    
-    function toggleRandom() { 
-        isRandom = !isRandom; 
-        document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; 
-        document.getElementById('rand-status').style.color = isRandom ? "var(--blue)" : "#5c6370";
-        if(isRandom) shuffle(); curIdx = 0; update(); 
+    function setCircle(n) { circle = n; curIdx = 0; errors = 0; syncProgress(); closePanel('left'); update(); }
+    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; update(); }
+    function toggleFavMode() { isFavMode = !isFavMode; document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF"; curIdx = 0; update(); }
+
+    function importPaste() {
+        const raw = document.getElementById('raw-text').value.trim();
+        const title = document.getElementById('new-proj-name').value.trim() || "Untitled Project";
+        if(!raw) return;
+        const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
+        build(lines, title);
     }
 
-    function toggleFavMode() {
-        isFavMode = !isFavMode;
-        document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF";
-        document.getElementById('fav-status').style.color = isFavMode ? "var(--blue)" : "#5c6370";
-        curIdx = 0; closePanel('left'); update();
-    }
-
-    function toggleFavCurrent() {
-        let pool = isFavMode ? wordBank.filter(w => !w.arc && w.fav) : wordBank.filter(w => !w.arc);
-        if(!pool[curIdx]) return;
-        let actualWord = wordBank.find(w => w.w === pool[curIdx].w);
-        actualWord.fav = !actualWord.fav;
-        localStorage.setItem('v44_data', JSON.stringify(wordBank));
-        updateFavIcon(actualWord.fav);
-    }
-
-    function updateFavIcon(isFav) {
-        const btn = document.getElementById('fav-btn');
-        btn.innerText = isFav ? "★" : "☆";
-        btn.style.color = isFav ? "var(--blue)" : "#5c6370";
-    }
-
-    function importPaste() { const raw = document.getElementById('raw-text').value.trim(); if(!raw) return; build(raw.split('\n').map(l=>l.trim()).filter(l=>l)); }
-    async function parsePDF(file) {
-        if(!file) return;
-        try {
-            const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(buf).promise; let lines = [];
-            for(let i=1; i<=pdf.numPages; i++) {
-                const page = await pdf.getPage(i); const content = await page.getTextContent(); let yMap = {};
-                content.items.forEach(it => {
-                    let text = it.str.trim(); if(!text) return; 
-                    let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
-                    if (matchedY) yMap[matchedY].push({x: it.transform[4], s: text}); else yMap[y] = [{x: it.transform[4], s: text}];
-                });
-                Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
-            }
-            build(lines);
-        } catch(e) { alert("PDF 解析错误。"); }
-    }
-    function parseDOC(file) { if(!file) return; file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim())))); }
-
-    function build(lines) {
+    function build(lines, title) {
         let res = [];
         for(let i=0; i<lines.length; i+=2) if(lines[i+1]) res.push({w: lines[i], d: lines[i+1], arc: false, fav: false});
-        wordBank = res; localStorage.setItem('v44_data', JSON.stringify(wordBank)); useCache();
+        const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
+        projects.push(newProj);
+        activeProjectId = newProj.id;
+        saveAll();
+        document.getElementById('import-center').style.display='none';
+        switchProject(newProj.id);
     }
 
-    function useCache() { if(wordBank.length > 0) { document.getElementById('import-center').style.display='none'; update(); } }
-    function resetApp() { if(confirm("此操作不可逆，重置所有数据？")) { localStorage.clear(); location.reload(); } }
-    function shuffle() { let act = wordBank.filter(w => !w.arc).sort(() => Math.random() - 0.5); let arc = wordBank.filter(w => w.arc); wordBank = [...act, ...arc]; }
-
-    function showToast() {
-        const t = document.getElementById('toast-alert'); t.classList.add('show'); locked = true;
-        setTimeout(() => { t.classList.remove('show'); locked = false; }, 1200);
+    function renderProjectList() {
+        const container = document.getElementById('projects-container');
+        container.innerHTML = projects.map(p => `
+            <div class="panel-item ${p.id == activeProjectId ? 'active' : ''}" onclick="switchProject(${p.id})">
+                ${p.title} <span class="proj-badge">${p.data.length} Words</span>
+            </div>
+        `).join('');
     }
 
-    function getPool() { return isFavMode ? wordBank.filter(w => !w.arc && w.fav) : wordBank.filter(w => !w.arc); }
+    // --- C3 提示逻辑 ---
+    function showHint(word) {
+        if(word.length <= 2) {
+            document.getElementById('hint-content').innerText = word[0] + " ...";
+        } else {
+            document.getElementById('hint-content').innerText = word[0].toUpperCase() + " _ ".repeat(word.length-2) + word[word.length-1].toUpperCase();
+        }
+        document.getElementById('hint-alert').classList.add('show');
+        setTimeout(() => document.getElementById('hint-alert').classList.remove('show'), 2500);
+    }
+
+    function move(ok) {
+        let p = projects.find(x => x.id == activeProjectId);
+        let pool = getPool();
+        if(ok) {
+            locked = true;
+            spellWrongCount = 0; // 重置错误计数
+            document.getElementById('word-text').style.color = "var(--green)";
+            setTimeout(() => {
+                document.getElementById('word-text').style.color = "#fff";
+                curIdx++; 
+                locked = false;
+                syncProgress();
+                checkEnd(); 
+            }, 300);
+        } 
+        else {
+            errors++;
+            if(circle === 3) {
+                spellWrongCount++;
+                if(spellWrongCount === 1) {
+                    showHint(pool[curIdx].w); // 第一次错提供首尾字母提示
+                } else {
+                    const t = document.getElementById('toast-alert');
+                    t.innerText = "ANS: " + pool[curIdx].w; // 第二次错直接给答案
+                    t.classList.add('show');
+                    setTimeout(() => t.classList.remove('show'), 2000);
+                    spellWrongCount = 0;
+                }
+            } else {
+                const t = document.getElementById('toast-alert');
+                t.innerText = "✕ WRONG";
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 1200);
+            }
+        } 
+    }
 
     function update() {
+        let p = projects.find(x => x.id == activeProjectId);
+        if(!p) { document.getElementById('import-center').style.display='flex'; return; }
+        
+        document.getElementById('current-project-name').innerText = p.title;
         let pool = getPool();
+        
         if(pool.length === 0) { 
             document.getElementById('word-text').innerText = isFavMode ? "NO FAVORITES" : "ALL CLEAR"; 
             document.getElementById('fav-btn').style.display = 'none';
             document.getElementById('btns').style.display = 'none';
             document.getElementById('spell-box').style.display = 'none';
-            document.getElementById('roleplay-box').style.display = 'none';
-            document.getElementById('submit-rp').style.display = 'none';
             return; 
         }
-        document.getElementById('fav-btn').style.display = 'block';
-        if(curIdx >= pool.length) { checkEnd(); return; }
 
-        document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
-        if(document.getElementById('m'+circle)) document.getElementById('m'+circle).classList.add('active');
+        if(curIdx >= pool.length) { checkEnd(); return; }
 
         const item = pool[curIdx];
         document.getElementById('bar-fill').style.width = (curIdx / pool.length * 100) + "%";
-        
-        updateFavIcon(item.fav);
+        document.getElementById('word-text').innerText = (circle === 1 || circle === 4) ? item.w : item.d;
+        document.getElementById('fav-btn').innerText = item.fav ? "★" : "☆";
+        document.getElementById('fav-btn').style.color = item.fav ? "var(--blue)" : "#5c6370";
+        document.getElementById('fav-btn').style.display = 'block';
         
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
         document.getElementById('roleplay-box').style.display = 'none';
         document.getElementById('submit-rp').style.display = 'none';
-        document.getElementById('main-container').scrollTop = 0;
 
-        if(circle === 1) {
-            document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "C1: Identify";
+        if(circle === 1 || circle === 2) {
             document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.d, 'd', pool);
-        } else if(circle === 2) {
-            document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "C2: Recall";
-            document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.w, 'w', pool);
+            renderOpts(circle === 1 ? item.d : item.w, circle === 1 ? 'd' : 'w', p.data);
         } else if(circle === 3) {
-            document.getElementById('word-text').innerText = item.d;
-            document.getElementById('hint-text').innerText = "C3: Spelling";
-            const s = document.getElementById('spell-box'); s.style.display = 'block'; s.value = ""; s.focus();
+            document.getElementById('spell-box').style.display = 'block';
+            document.getElementById('spell-box').value = ""; document.getElementById('spell-box').focus();
         } else if(circle === 4) {
-            document.getElementById('word-text').innerText = item.w;
-            document.getElementById('hint-text').innerText = "C4: Role-play";
-            const r = document.getElementById('roleplay-box'); r.style.display = 'block'; r.value = ""; r.focus();
+            document.getElementById('roleplay-box').style.display = 'block';
             document.getElementById('submit-rp').style.display = 'block';
+            document.getElementById('roleplay-box').value = "";
         }
     }
 
-    function renderOpts(corr, key, pool) {
+    function renderOpts(corr, key, allData) {
         let opts = [corr];
-        let safetyPool = wordBank.filter(w => !w.arc); 
-        while(opts.length < 4 && opts.length < safetyPool.length) {
-            let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key];
+        while(opts.length < 4 && opts.length < allData.length) {
+            let r = allData[Math.floor(Math.random()*allData.length)][key];
             if(!opts.includes(r)) opts.push(r);
         }
         opts.sort(() => Math.random() - 0.5);
         const area = document.getElementById('btns'); area.innerHTML = '';
         opts.forEach(o => {
             const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { 
-                if(!locked) { 
-                    if(o === corr) { b.classList.add('correct'); move(true); } 
-                    else { b.classList.add('wrong-shake'); move(false); setTimeout(() => b.classList.remove('wrong-shake'), 400); } 
-                } 
-            };
+            b.onclick = () => { if(!locked) { if(o === corr) move(true); else { b.classList.add('wrong-shake'); move(false); setTimeout(()=>b.classList.remove('wrong-shake'),400); } } };
             area.appendChild(b);
         });
     }
@@ -346,69 +392,84 @@
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
             let pool = getPool();
-            if(e.target.value.trim().toLowerCase() === pool[curIdx].w.toLowerCase()) move(true); 
-            else move(false); 
+            if(e.target.value.trim().toLowerCase() === pool[curIdx].w.toLowerCase()) move(true); else move(false); 
         } 
     };
 
-    function move(ok) {
-        if(ok) {
-            locked = true;
-            const wt = document.getElementById('word-text');
-            wt.style.color = "var(--green)";
-            setTimeout(() => {
-                wt.style.color = "#fff";
-                curIdx++; 
-                locked = false;
-                checkEnd(); 
-            }, 300);
-        } 
-        else { errors++; showToast(); } 
+    function getPool() {
+        let p = projects.find(x => x.id == activeProjectId);
+        if(!p) return [];
+        let pool = p.data.filter(w => !w.arc);
+        if(isFavMode) pool = pool.filter(w => w.fav);
+        return pool;
     }
 
     function checkEnd() {
-        if(locked) return;
         let pool = getPool();
         if(curIdx >= pool.length && pool.length > 0) {
-            if(errors === 0) { 
-                if(circle < 4) circle++; else circle = 1; 
-                curIdx = 0; if(isRandom) shuffle(); alert("Circle Cleared!"); 
-            }
-            else { curIdx = 0; errors = 0; alert("Requires 100% Accuracy. Restarting..."); }
+            if(errors === 0) { circle = circle < 4 ? circle + 1 : 1; curIdx = 0; alert("Circle Cleared!"); }
+            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
+            syncProgress();
         }
         update();
     }
 
-    function skip() { if(!locked) { curIdx++; update(); } }
-    
+    function skip() { curIdx++; syncProgress(); update(); }
     function archiveCurrent() {
         let pool = getPool();
         if(pool[curIdx]) {
-            wordBank.find(w => w.w === pool[curIdx].w).arc = true;
-            localStorage.setItem('v44_data', JSON.stringify(wordBank));
-            update();
+            let p = projects.find(x => x.id == activeProjectId);
+            p.data.find(w => w.w === pool[curIdx].w).arc = true;
+            saveAll(); update();
         }
     }
-
-    function restoreWord(wToRestore) {
-        wordBank.find(w => w.w === wToRestore).arc = false;
-        localStorage.setItem('v44_data', JSON.stringify(wordBank));
-        showList('arc'); update(); 
+    function toggleFavCurrent() {
+        let pool = getPool();
+        let p = projects.find(x => x.id == activeProjectId);
+        let word = p.data.find(w => w.w === pool[curIdx].w);
+        word.fav = !word.fav;
+        saveAll(); update();
+    }
+    function restoreWord(w) {
+        let p = projects.find(x => x.id == activeProjectId);
+        p.data.find(x => x.w === w).arc = false;
+        saveAll(); showList('arc'); update();
     }
 
     function showList(type) {
         closePanel('right'); document.getElementById('modal-list').style.display = 'flex';
-        let data = (type==='all') ? wordBank : wordBank.filter(w=>w.arc);
+        let p = projects.find(x => x.id == activeProjectId);
+        let data = (type==='all') ? p.data : p.data.filter(w=>w.arc);
         document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
         document.getElementById('list-content').innerHTML = data.map(w => `
             <div class="list-row">
-                <div><b>${w.w}</b> ${w.fav ? '<span style="color:var(--blue)">★</span>' : ''}<br><span style="color:#5c6370; font-size:0.95rem;">${w.d}</span></div>
-                ${type === 'arc' ? `<button class="restore-btn" onclick="restoreWord('${w.w}')">✕</button>` : ''}
+                <div><b>${w.w}</b> ${w.fav ? '★' : ''}<br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span></div>
+                ${type === 'arc' ? `<button style="background:none; border:none; color:#5c6370; font-size:1.5rem;" onclick="restoreWord('${w.w}')">✕</button>` : ''}
             </div>
         `).join('');
     }
 
-    window.onload = useCache;
+    // 初始化加载
+    window.onload = () => { if(activeProjectId) update(); else document.getElementById('import-center').style.display='flex'; };
+
+    // PDF/Word 解析省略 (同 V44，已整合入 build 函数)
+    async function parsePDF(file) {
+        const title = file.name.replace('.pdf', '');
+        const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(buf).promise; let lines = [];
+        for(let i=1; i<=pdf.numPages; i++) {
+            const page = await pdf.getPage(i); const content = await page.getTextContent(); let yMap = {};
+            content.items.forEach(it => {
+                let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
+                if (matchedY) yMap[matchedY].push({x: it.transform[4], s: it.str}); else yMap[y] = [{x: it.transform[4], s: it.str}];
+            });
+            Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
+        }
+        build(lines.filter(l=>l), title);
+    }
+    function parseDOC(file) {
+        const title = file.name.replace('.docx', '');
+        file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim()), title)));
+    }
 </script>
 </body>
 </html>
