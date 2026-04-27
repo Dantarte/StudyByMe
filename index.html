@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>DANTAHIBOU V48</title>
+    <title>DANTAHIBOU V49</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -90,28 +90,14 @@
 
         #toast-alert {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 5px; font-size: 0.85rem;
+            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 0.85rem;
             padding: 12px 28px; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.6);
             z-index: 10000; backdrop-filter: blur(10px); transition: top 0.4s; pointer-events: none; display: flex; align-items: center; gap: 10px;
         }
         #toast-alert.show { top: calc(var(--safe-top) + 85px); }
 
-        /* V48 宽敞现代的提示框 */
-        #hint-alert {
-            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
-            background: rgba(13, 17, 23, 0.95); color: #fff;
-            padding: 20px 40px; border-radius: 12px; border: 1px solid var(--blue);
-            z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
-            display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 250px;
-        }
-        #hint-alert.show { top: calc(var(--safe-top) + 100px); }
-        .hint-title { font-size: 0.7rem; color: var(--blue); text-transform: uppercase; letter-spacing: 4px; }
-        #hint-content { font-size: 1.8rem; font-weight: 200; letter-spacing: 8px; }
-
         .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
         
-        /* 极简现代 Action Icons */
         .action-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; width: 18px; height: 18px; }
         .action-btn { background: none; border: none; color: #5c6370; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
         .action-btn.edit:hover { color: var(--blue); }
@@ -130,10 +116,6 @@
 <body>
 
 <div id="toast-alert">✕ WRONG</div>
-<div id="hint-alert">
-    <div class="hint-title">HINT</div>
-    <div id="hint-content">---</div>
-</div>
 
 <div class="wrapper">
     <header>
@@ -196,7 +178,7 @@
 <div id="import-center">
     <div class="dashboard-content">
         <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">DANTAHIBOU</h1>
-        <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px;">CONTROL ROOM</div>
+        <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 2px;">Mirror Mirror</div>
 
         <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000; margin-bottom:30px; display:none;" onclick="hideImporter()">
             ⏎ 返回当前练习
@@ -219,7 +201,7 @@
             <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
             <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
             
-            <button class="btn-main" onclick="importPaste()">开始内化</button>
+            <button class="btn-main" onclick="importPaste()">开始练习</button>
         </div>
     </div>
 </div>
@@ -279,7 +261,7 @@
         if(activeProjectId == id) {
             activeProjectId = projects.length > 0 ? projects[0].id : null;
             if(activeProjectId) { switchProject(activeProjectId); }
-            else { update(); } // 更新空状态
+            else { update(); } 
         }
         saveAll();
         renderProjectLists();
@@ -354,17 +336,8 @@
         switchProject(newProj.id);
     }
 
-    // 核心净化函数：剥离 n. adj. v. 等词性，用于智能拼写比对
     function cleanWord(w) {
         return w.replace(/\b(n\.|v\.|adj\.|adv\.|prep\.|pron\.|conj\.|interj\.)\b/gi, '').replace(/[()（）]/g, '').trim();
-    }
-
-    function showHint(rawWord) {
-        let word = cleanWord(rawWord);
-        if(word.length <= 2) document.getElementById('hint-content').innerText = word[0].toUpperCase() + " ...";
-        else document.getElementById('hint-content').innerText = word[0].toUpperCase() + " \u00A0 ".repeat(word.length-2) + word[word.length-1].toUpperCase();
-        document.getElementById('hint-alert').classList.add('show');
-        setTimeout(() => document.getElementById('hint-alert').classList.remove('show'), 2500);
     }
 
     function move(ok) {
@@ -378,7 +351,12 @@
             errors++;
             if(circle === 3) {
                 spellWrongCount++;
-                if(spellWrongCount === 1) showHint(pool[curIdx].w);
+                if(spellWrongCount === 1) {
+                    const t = document.getElementById('toast-alert');
+                    t.innerHTML = "TRY AGAIN 再试一次"; 
+                    t.classList.add('show');
+                    setTimeout(() => t.classList.remove('show'), 1500);
+                }
                 else {
                     const t = document.getElementById('toast-alert');
                     t.innerHTML = `<span style="color:#5c6370; font-size:0.7rem;">ANS:</span> ${pool[curIdx].w}`;
@@ -468,7 +446,6 @@
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
             let pool = getPool();
-            // C3 智能比对：剔除目标词的词性标注
             let expectedWord = cleanWord(pool[curIdx].w).toLowerCase();
             let typedWord = e.target.value.trim().toLowerCase();
             
