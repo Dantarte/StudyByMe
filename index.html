@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>LEXBYME V54</title>
+    <title>LexByMe V55</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -50,7 +50,6 @@
         
         .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
         
-        /* 动态排版，适应单词和例句 */
         #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
         .text-sentence { font-size: 1.4rem !important; line-height: 1.6 !important; text-align: left !important; font-weight: 300 !important; color: #e6edf3 !important; }
 
@@ -59,20 +58,23 @@
         #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
         .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
-        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; }
-        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
+        button.choice:hover { border-color: var(--blue); background: #1c2128; }
+        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important;}
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; }
+        .input-box { background: rgba(0,0,0,0.5); border: none; border-bottom: 2px solid var(--blue); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; transition: border-color 0.2s; }
+        .input-box:focus { border-color: var(--green); }
 
         footer {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
             background: #0d1117; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; transition: color 0.2s; }
+        .footer-btn:hover { color: #fff; }
 
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
@@ -87,31 +89,37 @@
         .archive-meta { font-size: 0.75rem; color: #5c6370; }
 
         textarea.paste-area { width: 100%; height: 120px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .btn-main:hover { opacity: 0.8; }
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
-        #toast-alert {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 0.85rem;
-            padding: 12px 28px; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.6);
-            z-index: 10000; backdrop-filter: blur(10px); transition: top 0.4s; pointer-events: none; display: flex; align-items: center; gap: 10px;
+        /* V55 居中报错体系 */
+        #toast-alert, #gentle-toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0; pointer-events: none; z-index: 10000;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #toast-alert.show { top: calc(var(--safe-top) + 85px); }
+        #toast-alert.show, #gentle-toast.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
 
-        /* V54 极致层级排版的提示 UI */
+        #toast-alert {
+            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 1rem;
+            padding: 20px 35px; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.6);
+            backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
         #gentle-toast {
-            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
             background: rgba(22, 27, 34, 0.98); 
-            padding: 25px 40px; border-radius: 16px; border: 1px solid #30363d;
-            z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+            padding: 30px 50px; border-radius: 16px; border: 1px solid #30363d;
+            backdrop-filter: blur(15px); box-shadow: 0 15px 40px rgba(0,0,0,0.8);
             display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 220px;
         }
-        #gentle-toast.show { top: calc(var(--safe-top) + 120px); }
-        .gentle-zh { font-size: 1.15rem; font-weight: 300; letter-spacing: 4px; color: #fff; margin-bottom: 10px; }
-        .gentle-en { font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; font-family: monospace; }
+        .gentle-zh { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #fff; margin-bottom: 12px; }
+        .gentle-en { font-size: 0.7rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; font-family: monospace; }
         
         .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
         
@@ -144,7 +152,7 @@
     <header>
         <div class="icon-btn" style="font-size: 1.5rem;" onclick="openPanel('left')">☰</div>
         <div style="text-align: center;">
-            <div style="font-size: 0.85rem; font-weight: bold; letter-spacing: 3px; color: var(--blue); text-transform: uppercase;">LEXBYME</div>
+            <div style="font-size: 0.95rem; font-weight: bold; letter-spacing: 2px; color: var(--blue);">LexByMe</div>
             <div id="current-project-name" style="font-size: 0.5rem; color: #5c6370; letter-spacing: 1px; margin-top: 3px;"></div>
         </div>
         <div class="icon-btn" onclick="openPanel('right')"><div class="repo-icon"><span></span><span></span><span></span></div></div>
@@ -198,7 +206,7 @@
 
 <div id="import-center">
     <div class="dashboard-content">
-        <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">LEXBYME</h1>
+        <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">LexByMe</h1>
         <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 2px;">Mirror Mirror</div>
 
         <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000; margin-bottom:30px; display:none;" onclick="hideImporter()">
@@ -212,8 +220,12 @@
 
         <div style="background: rgba(13,17,23,0.5); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
             <div style="font-size: 0.75rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px;">+ CREATE NEW 新建项目</div>
+            <select id="import-mode-selector" style="width: 100%; background: #0d1117; border: 1px solid var(--border); color: var(--blue); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
+                <option value="3">三行模式 (词 + 义 + 挖空例句) [推荐]</option>
+                <option value="2">两行模式 (词 + 义) [缺失C4]</option>
+            </select>
             <input type="text" id="new-proj-name" placeholder="项目名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
-            <textarea id="raw-text" class="paste-area" placeholder="请遵循三行格式：&#10;1. 英文单词&#10;2. 中文释义&#10;3. 实战填空例句 (C4专用)"></textarea>
+            <textarea id="raw-text" class="paste-area" placeholder="在此粘贴单词文本..."></textarea>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                 <label for="p-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">PDF 导入</label>
@@ -236,7 +248,6 @@
 </div>
 
 <script>
-    // --- 阻止意外报错 ---
     window.onerror = function() { document.getElementById('import-center').style.display='flex'; };
 
     let projects = JSON.parse(localStorage.getItem('dh_projects')) || [];
@@ -349,18 +360,21 @@
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
         const title = document.getElementById('new-proj-name').value.trim() || `档案 ${new Date().toLocaleDateString()}`;
-        if(!raw) return; build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
+        if(!raw) return; 
+        build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
     }
 
-    // 🎯 V54 核心改动：支持三行数据抓取 (词 + 义 + 挖空例句)
+    // 🎯 V55 智能分流构建：通过选项判断数据是两行还是三行
     function build(lines, title) {
         let res = [];
-        for(let i=0; i<lines.length; i+=3) {
+        let mode = parseInt(document.getElementById('import-mode-selector').value); // 2 或 3
+        
+        for(let i=0; i<lines.length; i+=mode) {
             if(lines[i] && lines[i+1]) {
                 res.push({
                     w: lines[i], 
                     d: lines[i+1], 
-                    s: lines[i+2] || "【缺失引导例句，请在原文件中补充】", 
+                    s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句，请在原文件中补充】", 
                     arc: false, 
                     fav: false
                 });
@@ -369,7 +383,8 @@
         const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
         projects.push(newProj); activeProjectId = newProj.id; saveAll();
         document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
-        switchProject(newProj.id);
+        document.getElementById('import-center').style.display = 'none';
+        renderProjectLists(); update();
     }
 
     function cleanWord(w) {
@@ -383,8 +398,10 @@
         let pool = getPool();
         if(ok) {
             locked = true; spellWrongCount = 0;
-            document.getElementById('word-text').style.color = "var(--green)";
-            setTimeout(() => { document.getElementById('word-text').style.color = ""; curIdx++; locked = false; syncProgress(); checkEnd(); }, 300);
+            // V55: 取消顶部单词变绿，只保留选项本身变绿，由 renderOpts 处理 button class
+            setTimeout(() => { 
+                curIdx++; locked = false; syncProgress(); checkEnd(); 
+            }, 400); // 预留 0.4s 让用户看到绿色选项
         } 
         else {
             errors++;
@@ -444,10 +461,9 @@
         document.getElementById('btns').style.display = 'none';
         document.getElementById('spell-box').style.display = 'none';
 
-        // 🎯 动态分配 C1/C2/C3/C4 的界面逻辑
         if(circle === 1 || circle === 2) {
             wt.innerText = circle === 1 ? item.w : item.d;
-            wt.className = ''; // 恢复原本巨大的排版
+            wt.className = ''; 
             document.getElementById('hint-text').innerText = circle === 1 ? "C1: Identify" : "C2: Recall";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(circle === 1 ? item.d : item.w, circle === 1 ? 'd' : 'w', p.data);
@@ -459,10 +475,10 @@
             document.getElementById('spell-box').value = ""; document.getElementById('spell-box').focus();
         } else if(circle === 4) {
             wt.innerText = item.s || "【缺失引导例句，请在原文件中补充】";
-            wt.className = 'text-sentence'; // 赋予专门定制的左对齐长句排版
-            document.getElementById('hint-text').innerText = "C4: Role-play Context";
+            wt.className = 'text-sentence'; 
+            document.getElementById('hint-text').innerText = "C4: Context (情境填空)";
             document.getElementById('btns').style.display = 'grid';
-            renderOpts(item.w, 'w', p.data); // C4 通过选项选择英文原词
+            renderOpts(item.w, 'w', p.data); 
         }
         
         document.querySelectorAll('.panel-item').forEach(p => p.classList.remove('active'));
@@ -480,7 +496,18 @@
         const area = document.getElementById('btns'); area.innerHTML = '';
         opts.forEach(o => {
             const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { if(!locked) { if(o === corr) move(true); else { b.classList.add('wrong-shake'); move(false); setTimeout(()=>b.classList.remove('wrong-shake'),400); } } };
+            b.onclick = () => { 
+                if(!locked) { 
+                    if(o === corr) { 
+                        b.classList.add('correct'); // 只保留选项变绿
+                        move(true); 
+                    } else { 
+                        b.classList.add('wrong-shake'); 
+                        move(false); 
+                        setTimeout(()=>b.classList.remove('wrong-shake'),400); 
+                    } 
+                } 
+            };
             area.appendChild(b);
         });
     }
