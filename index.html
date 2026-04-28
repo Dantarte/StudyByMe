@@ -7,108 +7,115 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>LexByMe V65</title>
+    <title>LexByMe Classic</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root { 
             --bg: #000; --app-bg: #0a0f14; --text: #abb2bf;
-            --blue: #61afef; --green: #98c379; --red: #e06c75; --border: #1a2a3a;
+            --blue: #0ff; --green: #98c379; --red: #ff4444; --border: #1a2a3a;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Roboto Mono', monospace; margin: 0; height: 100vh; overflow: hidden; }
+        /* 字体回归极其克制的无衬线系统字体 */
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; position: relative; display: flex; flex-direction: column; height: 100%; }
 
         header {
-            padding-top: calc(var(--safe-top) + 15px); padding-left: 25px; padding-right: 25px; padding-bottom: 15px;
+            padding-top: calc(var(--safe-top) + 15px); padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center;
-            background: #050505; border-bottom: 1px solid var(--border); z-index: 200;
+            background: #050505; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 200;
         }
-        .brand { font-size: 1rem; font-weight: 200; letter-spacing: 10px; color: #fff; text-transform: uppercase; }
-        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: color 0.2s; }
+        .icon-btn:hover { color: #fff; }
         
-        .folder-icon { width: 22px; height: 18px; border: 1px solid currentColor; border-top-width: 3px; border-radius: 2px; position: relative; }
-        .folder-icon::after { content: ''; position: absolute; top: -5px; left: 0; width: 8px; height: 3px; background: currentColor; border-radius: 1px 1px 0 0; }
+        .repo-icon { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+        .repo-icon span { display: block; height: 2px; background: currentColor; border-radius: 1px; }
+        .repo-icon span:nth-child(1) { width: 16px; } .repo-icon span:nth-child(2) { width: 10px; } .repo-icon span:nth-child(3) { width: 14px; }
 
         .side-panel {
             position: fixed; top: 0; bottom: 0; background: #000;
-            z-index: 5000; display: none; flex-direction: column; padding: 60px 30px; overflow-y: auto; width: 80%; max-width: 350px;
+            z-index: 5000; display: none; flex-direction: column; padding: 60px 25px; overflow-y: auto; width: 85%; max-width: 380px;
         }
-        .side-panel.active { display: flex; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .panel-item { padding: 28px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; letter-spacing: 2px; }
-        .panel-item.active { color: var(--blue); font-weight: bold; border-bottom-color: var(--blue); }
-        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 1.5rem; color: #5c6370; padding: 10px; }
+        .side-panel.active { display: flex; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        .panel-item { padding: 25px 0; border-bottom: 1px solid var(--border); font-size: 1.05rem; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; }
+        .panel-item.active { color: var(--blue); font-weight: bold; }
+        .close-btn { position: absolute; top: 30px; right: 25px; font-size: 2rem; color: #5c6370; padding: 10px; cursor: pointer; }
 
-        #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 30px 25px 120px; position: relative; }
-        .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 40px 0 20px; position: relative; }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; letter-spacing: 1px; }
-        #fav-btn { font-size: 1.5rem; cursor: pointer; color: #5c6370; }
-        #hint-text { font-size: 0.7rem; color: var(--blue); text-align: center; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 40px; opacity: 0.6; }
-        #global-counter { position: absolute; top: -25px; right: 0; font-size: 0.75rem; color: var(--blue); opacity: 0.8; }
+        #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
+        
+        .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; position: relative; }
+        #word-text { font-size: 2.2rem; font-weight: 300; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; }
+        #hint-text { font-size: 0.75rem; color: var(--blue); text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; opacity: 0.8; }
 
-        .opts-grid { display: grid; gap: 18px; width: 100%; margin-bottom: 30px; }
-        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 22px 18px; font-size: 0.95rem; border-radius: 4px; text-align: left; line-height: 1.4; cursor: pointer; transition: 0.2s; }
-        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important; }
+        #global-counter { position: absolute; top: -15px; right: 0; font-family: monospace; font-size: 0.8rem; color: var(--blue); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; background: #050505; display: none; }
+
+        .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 8px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important;}
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .input-box { background: #050505; border: none; border-bottom: 1px solid var(--border); color: #fff; font-size: 1.4rem; text-align: center; width: 100%; padding: 20px 0; display: none; margin-bottom: 30px; transition: 0.3s; outline: none; }
-        .input-box:focus { border-bottom-color: var(--blue); }
-        .input-box.success-flash { border-bottom-color: var(--green) !important; color: var(--green); }
-
-        .btn-action { background: none; border: 1px solid var(--border); color: #5c6370; padding: 12px 20px; font-size: 0.75rem; border-radius: 2px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: 0.2s; margin-top: 20px; width: fit-content; align-self: center; }
-        .btn-action:hover { border-color: var(--red); color: var(--red); }
+        .input-box { background: #050505; border: none; border-bottom: 2px solid var(--border); color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 15px 0; display: none; margin-bottom: 20px; transition: border-color 0.2s; outline: none; font-family: inherit; }
+        .input-box.success-flash { border-color: var(--green) !important; color: var(--green); }
 
         footer {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
             background: #050505; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; padding: 10px; cursor: pointer; transition: 0.2s; }
-        .footer-btn:hover { color: #fff; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; font-family: inherit; }
 
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; box-shadow: 0 0 10px var(--blue); }
 
+        /* 克制的赛博报错弹窗 */
         #hud-glitch {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            background: #050505 !important; border: 1px solid var(--red);
-            padding: 50px 70px; border-radius: 2px; z-index: 10000; display: flex; flex-direction: column; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 80px rgba(0,0,0,1);
+            background: #050505 !important; border: 1px solid var(--blue);
+            padding: 40px 60px; border-radius: 4px; z-index: 10000; display: flex; flex-direction: column; align-items: center;
+            opacity: 0; pointer-events: none; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 60px rgba(0,0,0,1);
         }
-        #hud-glitch.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; animation: glitch-anim 0.2s infinite; }
-        .hud-main { font-size: 1.4rem; color: #fff; letter-spacing: 8px; margin-bottom: 15px; font-weight: 300; }
-        .hud-sub { font-size: 0.7rem; color: var(--red); letter-spacing: 5px; opacity: 0.7; }
+        #hud-glitch.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; animation: glitch-anim 0.2s infinite; border-color: var(--red); }
+        
+        .hud-zh { font-size: 1.5rem; color: #fff; letter-spacing: 6px; text-shadow: 2px 0 0 #f00, -2px 0 0 #0ff; margin-bottom: 12px; font-weight: 300; font-family: inherit; }
+        .hud-en { font-family: monospace; font-size: 0.75rem; color: var(--red); letter-spacing: 4px; opacity: 0.8;}
 
         @keyframes glitch-anim {
-            0% { transform: translate(-50%, -50%) skewX(1deg); border-color: var(--red); }
-            50% { transform: translate(-51%, -49%) skewX(-1deg); border-color: var(--blue); }
-            100% { transform: translate(-50%, -50%); }
+            0% { transform: translate(-50%, -50%) scale(1) skewX(2deg); }
+            50% { transform: translate(-51%, -49%) scale(1.02) skewX(-2deg); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
+        /* 主控大厅回归整洁紧凑 */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; padding: calc(var(--safe-top) + 40px) 25px; overflow-y: auto; align-items: center; }
         .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; padding-bottom: 50px;}
-        .db-section { background: #050505; border: 1px solid var(--border); border-radius: 4px; padding: 30px; margin-bottom: 25px; }
-        .db-sec-title { font-size: 0.7rem; font-weight: bold; letter-spacing: 3px; margin-bottom: 25px; color: var(--blue); text-transform: uppercase; }
-        .paste-area { width: 100%; height: 130px; background: #000; color: #fff; border: 1px dashed #3e4451; padding: 15px; font-size: 0.9rem; margin-bottom: 20px; resize: none; font-family: inherit; transition: 0.3s; }
-        .paste-area:focus { border-color: var(--blue); outline: none; }
-        .btn-execute { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; font-size: 0.9rem; letter-spacing: 4px; border-radius: 2px; cursor: pointer; }
-        .btn-return { background: none; color: var(--green); border: 1px solid var(--green); margin-top: 15px; width: 100%; padding: 15px; display: none; letter-spacing: 2px; border-radius: 2px; cursor: pointer; }
+        .db-section { background: #050505; border: 1px solid var(--border); border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        .db-section.primary { border-color: var(--blue); }
+        .db-sec-title { font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; color: var(--blue); text-transform: uppercase; }
+        .archive-card { background: #0a0f14; border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: border-color 0.2s; }
+        .archive-card:hover { border-color: var(--blue); }
         
-        .archive-card { background: #0a0f14; border: 1px solid var(--border); padding: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .del-btn { color: #5c6370; padding: 10px; font-size: 1.2rem; }
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; font-family: inherit; }
+        .btn-return { background: none; color: var(--green); border: 1px solid var(--green); margin-top: 15px; display: none; }
+        
+        .paste-area { width:100%; height:120px; background:#000; color:#fff; border:1px solid var(--border); padding:15px; border-radius:6px; margin-bottom:15px; outline:none; resize:none; font-family:inherit; }
+        .paste-area:focus { border-color: var(--blue); }
 
-        .lang-toggle { margin-top: auto; display: flex; gap: 15px; padding-top: 30px; opacity: 0.5; }
-        .lang-btn { cursor: pointer; font-size: 0.75rem; letter-spacing: 2px; }
-        .lang-btn.active { color: var(--blue); font-weight: bold; opacity: 1; }
+        .del-icon { fill: none; stroke: currentColor; stroke-width: 2; width: 18px; height: 18px; }
+        .del-btn-wrap { color: #5c6370; padding: 8px; }
+
+        .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
+        .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
         @media (min-width: 768px) {
             #word-text { font-size: 2.8rem; }
+            #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
+            #panel-right { right: 0; left: auto; width: 450px; border-left: 1px solid var(--border); }
             .opts-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
@@ -116,158 +123,166 @@
 <body>
 
 <div id="hud-glitch">
-    <div class="hud-main" id="hud-main-text">再试一次</div>
-    <div class="hud-sub">TAKE YOUR TIME</div>
+    <div class="hud-zh">再试一次</div>
+    <div class="hud-en">TAKE YOUR TIME</div>
 </div>
 
 <div class="wrapper">
     <header>
-        <div class="icon-btn" onclick="openPanel('left')">☰</div>
-        <div class="brand">LexByMe</div>
-        <div class="icon-btn" onclick="openPanel('right')"><div class="folder-icon"></div></div>
+        <div class="icon-btn" onclick="openPanel('left')" style="font-size: 1.5rem;">☰</div>
+        <div style="text-align: center;">
+            <div style="font-size: 0.95rem; font-weight: bold; letter-spacing: 3px; color: var(--blue);">LexByMe</div>
+            <div id="current-project-name" style="font-size: 0.5rem; color: #5c6370; letter-spacing: 1px; margin-top: 3px; text-transform: uppercase;"></div>
+        </div>
+        <div class="icon-btn" onclick="openPanel('right')"><div class="repo-icon"><span></span><span></span><span></span></div></div>
     </header>
 
     <div class="progress"><div id="bar-fill"></div></div>
 
     <main id="main-container">
         <div class="word-header">
-            <div id="global-counter">0 / 0</div>
+            <div id="global-counter">0/0</div>
             <div id="word-text">---</div>
-            <div id="fav-btn" onclick="toggleFavCurrent()">☆</div>
+            <div id="fav-btn" onclick="toggleFavCurrent()" style="font-size:1.8rem; cursor:pointer; color:#5c6370;">☆</div>
         </div>
-        <div id="hint-text">THE NEURAL INTAKE STATION</div>
+        <div id="hint-text">Waiting</div>
         <div class="opts-grid" id="btns"></div>
-        <input type="text" id="spell-box" class="input-box" placeholder="ENCODE..." autocomplete="off" autocapitalize="off">
-        <button id="btn-neutralize" class="btn-action" onclick="removeCurrentFromGlobal()">NEUTRALIZE</button>
+        <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
+        <button id="btn-remove-weak" class="btn-main" style="display:none; background:none; border:1px solid var(--red); color:var(--red); margin-top: 35px; font-size: 0.85rem; letter-spacing: 2px;" onclick="removeCurrentFromGlobal()">REMOVE FROM CORE 抹除弱点</button>
     </main>
 
     <footer>
         <button class="footer-btn" onclick="skip()">SKIP</button>
-        <button class="footer-btn" onclick="archiveCurrent()">INTO CORE</button>
+        <button class="footer-btn" onclick="archiveCurrent()" style="color:var(--blue)">ARCHIVE</button>
     </footer>
 </div>
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <div class="db-sec-title">SETTINGS</div>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">C1: SCAN</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">C2: RECALL</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">C3: ENCODE</div>
-    <div class="panel-item" onclick="setCircle(4)" id="m4" style="color:var(--red)">C4: NEURAL CORE</div>
-    
-    <div class="panel-item" onclick="showImporter()" style="margin-top:20px; border:none; color:var(--blue)">+ MIRROR MIRROR</div>
-    
-    <div class="lang-toggle">
-        <span class="lang-btn" id="lang-en" onclick="setLang('en')">ENG</span>
-        <span style="opacity:0.3">/</span>
-        <span class="lang-btn" id="lang-zh" onclick="setLang('zh')">中</span>
-    </div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase; font-size: 1rem; letter-spacing: 2px;">Settings</h3>
+    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: Identify</div>
+    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: Recall</div>
+    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: Spelling</div>
+    <div class="panel-item" onclick="setCircle(4)" id="m4" style="color: var(--red);">Circle 4: Global Neural</div>
+    <div class="panel-item" onclick="showImporter()" style="color:var(--blue); margin-top:30px; border:none; justify-content:center;">+ 主控大厅</div>
 </div>
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <div class="db-sec-title">LIBRARY</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase; font-size: 1rem; letter-spacing: 2px;">Library</h3>
     <div id="projects-container"></div>
+    <div class="panel-item" onclick="showList('all')" style="margin-top:20px; border-top:1px solid var(--border); justify-content: center; font-size: 0.9rem;">完整清单 (Full List)</div>
 </div>
 
 <div id="import-center">
     <div class="dashboard-content">
-        <div class="brand" style="text-align: center; margin-bottom: 40px; font-size: 2.2rem; font-weight: 100;">LexByMe</div>
-        <div class="db-section">
-            <div class="db-sec-title">INITIATE DATA INTAKE</div>
-            <input type="text" id="new-proj-name" style="width:100%; background:#000; border:none; border-bottom:1px solid var(--border); padding:15px; margin-bottom:20px; color:#fff;" placeholder="PROJECT NAME">
-            <textarea id="raw-text" class="paste-area" placeholder="PASTE RAW DATA HERE...&#10;(WORD \n DEFINITION)"></textarea>
-            
+        <h1 style="font-weight: 200; margin-bottom: 5px; color:#fff; letter-spacing: 4px; text-align: center;">LexByMe</h1>
+        <div class="db-section primary">
+            <div class="db-sec-title">1. Initialize 数据接入</div>
+            <input type="text" id="new-proj-name" class="input-box" style="display:block; font-size: 1rem; border-bottom:1px solid var(--border); margin-bottom:15px; color:#fff;" placeholder="项目名称">
+            <textarea id="raw-text" class="paste-area" placeholder="在此粘贴两行模式文本..."></textarea>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                <label for="p-in" style="background:#111; color:#fff; padding:12px; text-align:center; font-size:0.75rem; letter-spacing:2px; cursor:pointer; border: 1px solid var(--border);">PDF</label>
-                <label for="d-in" style="background:#111; color:#fff; padding:12px; text-align:center; font-size:0.75rem; letter-spacing:2px; cursor:pointer; border: 1px solid var(--border);">DOCX</label>
+                <label for="p-in" style="background:#111; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📄 PDF 导入</label>
+                <label for="d-in" style="background:#111; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📝 Word 导入</label>
             </div>
             <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
             <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
-            
-            <button class="btn-execute" onclick="importPaste()" id="btn-execute-text">EXECUTE</button>
-            <button id="btn-return-active" class="btn-return" onclick="hideImporter()">⏎ RESUME SESSION</button>
+            <button class="btn-main" onclick="importPaste()">START 开始练习</button>
+            <button id="btn-return-active" class="btn-main btn-return" onclick="hideImporter()">⏎ 返回继续当前练习</button>
         </div>
-        <div id="existing-projects-area" style="display:none;"><div id="dashboard-project-list"></div></div>
+        <div class="db-section" id="existing-projects-area" style="display:none; border:none; padding-top: 0;"><div id="dashboard-project-list"></div></div>
     </div>
 </div>
+
+<div id="modal-list" class="modal-full"><div class="close-btn" onclick="this.parentElement.style.display='none'">✕</div><div id="list-content" style="max-width:800px; margin:0 auto;"></div></div>
 
 <script>
     let globalMistakes = JSON.parse(localStorage.getItem('lbm_global_mistakes')) || {};
     let projects = JSON.parse(localStorage.getItem('dh_projects')) || [];
-    let activeProjectId = localStorage.getItem('dh_active_id');
-    let lang = localStorage.getItem('lbm_lang') || 'en';
-    let circle = 1, curIdx = 0, locked = false;
+    let savedId = localStorage.getItem('dh_active_id');
+    let activeProjectId = (savedId && savedId !== "null" && savedId !== "undefined") ? savedId : null;
+    let circle = 1, curIdx = 0, errors = 0, locked = false;
 
-    const i18n = {
-        en: { scan: "C1: SCAN", recall: "C2: RECALL", encode: "C3: ENCODE", core: "C4: NEURAL CORE", archive: "INTO CORE", skip: "SKIP", execute: "EXECUTE", try: "TRY AGAIN", time: "TAKE YOUR TIME", neutralize: "NEUTRALIZE", resume: "⏎ RESUME SESSION" },
-        zh: { scan: "第一环: 扫描", recall: "第二环: 检索", encode: "第三环: 编码", core: "第四环: 神经中枢", archive: "入库", skip: "跳过", execute: "执行", try: "再试一次", time: "TAKE YOUR TIME", neutralize: "中和弱点", resume: "⏎ 返回练习" }
-    };
-
-    window.addEventListener('popstate', () => {
-        if (document.querySelector('.side-panel.active')) { closePanel('left'); closePanel('right'); history.pushState(null,null,null); }
-        else if (document.getElementById('import-center').style.display === 'flex' && activeProjectId) { hideImporter(); history.pushState(null,null,null); }
+    window.addEventListener('popstate', function(e) {
+        if (document.querySelector('.side-panel.active')) {
+            closePanel('left'); closePanel('right'); history.pushState(null, null, null);
+        } else if (document.getElementById('import-center').style.display === 'flex' && activeProjectId) {
+            hideImporter(); history.pushState(null, null, null);
+        }
     });
-    history.pushState(null,null,null);
-
-    function setLang(l) { lang = l; localStorage.setItem('lbm_lang', l); updateUIStrings(); closePanel('left'); update(); }
-    function updateUIStrings() {
-        const t = i18n[lang];
-        document.getElementById('m1').innerText = t.scan; document.getElementById('m2').innerText = t.recall;
-        document.getElementById('m3').innerText = t.encode; document.getElementById('m4').innerText = t.core;
-        document.querySelectorAll('.footer-btn')[0].innerText = t.skip; document.querySelectorAll('.footer-btn')[1].innerText = t.archive;
-        document.getElementById('btn-execute-text').innerText = t.execute; document.getElementById('hud-main-text').innerText = t.try;
-        document.getElementById('btn-neutralize').innerText = t.neutralize; document.getElementById('btn-return-active').innerText = t.resume;
-        document.getElementById('lang-en').className = lang === 'en' ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('lang-zh').className = lang === 'zh' ? 'lang-btn active' : 'lang-btn';
-    }
+    history.pushState(null, null, null);
 
     function saveGlobal() { localStorage.setItem('lbm_global_mistakes', JSON.stringify(globalMistakes)); }
     function saveAll() { localStorage.setItem('dh_projects', JSON.stringify(projects)); if(activeProjectId) localStorage.setItem('dh_active_id', activeProjectId); }
+
     function switchProject(id) { activeProjectId = id; hideImporter(); closePanel('right'); update(); }
 
     function move(ok) {
+        let pool = getPool();
         if(ok) {
-            locked = true; if(circle >= 3) document.getElementById('spell-box').classList.add('success-flash');
-            setTimeout(() => { document.getElementById('spell-box').classList.remove('success-flash'); curIdx++; locked = false; checkEnd(); }, (circle >= 3 ? 800 : 400));
+            locked = true;
+            if(circle >= 3) document.getElementById('spell-box').classList.add('success-flash');
+            setTimeout(() => {
+                document.getElementById('spell-box').classList.remove('success-flash');
+                curIdx++; locked = false; checkEnd();
+            }, (circle >= 3 ? 800 : 400));
         } else {
-            let item = getPool()[curIdx];
+            errors++;
+            let item = pool[curIdx];
             if(!globalMistakes[item.w]) globalMistakes[item.w] = { w: item.w, d: item.d, count: 0 };
             globalMistakes[item.w].count++; saveGlobal();
-            const gt = document.getElementById('hud-glitch'); gt.classList.add('show'); setTimeout(() => gt.classList.remove('show'), 1500);
+
+            const gt = document.getElementById('hud-glitch');
+            gt.classList.add('show'); 
+            setTimeout(() => { gt.classList.remove('show'); }, 1500);
         } 
     }
 
     function getPool() {
         if(circle === 4) return Object.values(globalMistakes).filter(v => v.count >= 3);
-        let p = projects.find(x => x.id == activeProjectId); return p ? p.data.filter(w => !w.arc) : [];
+        let p = projects.find(x => x.id == activeProjectId);
+        return p ? p.data.filter(w => !w.arc) : [];
     }
 
     function removeCurrentFromGlobal() {
-        let item = getPool()[curIdx]; if(item && globalMistakes[item.w]) { delete globalMistakes[item.w]; saveGlobal(); update(); }
+        let pool = getPool(); let item = pool[curIdx];
+        if(item && globalMistakes[item.w]) { delete globalMistakes[item.w]; saveGlobal(); update(); }
     }
 
     function update() {
         let p = projects.find(x => x.id == activeProjectId);
+        const wt = document.getElementById('word-text');
+        const counter = document.getElementById('global-counter');
+        const rmBtn = document.getElementById('btn-remove-weak');
+        
         if(!p && circle !== 4) { showImporter(); return; }
-        updateUIStrings();
-        const wt = document.getElementById('word-text'); const pool = getPool();
-        const counter = document.getElementById('global-counter'); const neutralize = document.getElementById('btn-neutralize');
-        
-        if(circle === 4 && pool.length > 0) { counter.innerText = `${curIdx + 1} / ${pool.length}`; counter.style.display = 'block'; neutralize.style.display = 'block'; }
-        else { counter.style.display = 'none'; neutralize.style.display = 'none'; }
+        document.getElementById('current-project-name').innerText = (circle === 4 ? "GLOBAL NEURAL" : (p ? p.title : "EMPTY"));
+        let pool = getPool();
 
-        if(pool.length === 0) { wt.innerText = circle === 4 ? "NEURAL CLEAR" : "ALL CLEAR"; document.getElementById('btns').style.display = 'none'; document.getElementById('spell-box').style.display = 'none'; return; }
+        if(circle === 4 && pool.length > 0) {
+            counter.innerText = `${curIdx + 1} / ${pool.length}`; counter.style.display = 'block'; rmBtn.style.display = 'block';
+        } else { counter.style.display = 'none'; rmBtn.style.display = 'none'; }
+
+        if(pool.length === 0) { 
+            wt.innerText = (circle === 4) ? "CORE CLEAR" : "ALL CLEAR";
+            document.getElementById('btns').style.display = 'none'; document.getElementById('spell-box').style.display = 'none';
+            return; 
+        }
+
         if(curIdx >= pool.length) { checkEnd(); return; }
-        
-        const item = pool[curIdx]; document.getElementById('bar-fill').style.width = (curIdx / pool.length * 100) + "%";
+        const item = pool[curIdx];
+        document.getElementById('bar-fill').style.width = (curIdx / pool.length * 100) + "%";
         document.getElementById('btns').style.display = 'none'; document.getElementById('spell-box').style.display = 'none';
 
         if(circle === 1 || circle === 2) {
-            wt.innerText = circle === 1 ? item.w : item.d; document.getElementById('btns').style.display = 'grid';
+            wt.innerText = circle === 1 ? item.w : item.d;
+            document.getElementById('hint-text').innerText = circle === 1 ? "// IDENTIFY" : "// RECALL";
+            document.getElementById('btns').style.display = 'grid';
             renderOpts(circle === 1 ? item.d : item.w, circle === 1 ? 'd' : 'w', p ? p.data : pool);
         } else {
-            wt.innerText = item.d; document.getElementById('spell-box').style.display = 'block';
+            wt.innerText = item.d;
+            document.getElementById('hint-text').innerText = circle === 4 ? "// GLOBAL WEAKNESS SPELLING" : "// NEURAL SPELLING";
+            document.getElementById('spell-box').style.display = 'block';
             document.getElementById('spell-box').value = ""; document.getElementById('spell-box').focus();
         }
         document.querySelectorAll('.panel-item').forEach(el => el.classList.remove('active'));
@@ -276,7 +291,9 @@
 
     function renderOpts(corr, key, allData) {
         let opts = [corr]; let pData = allData.filter(w => !w.arc);
-        while(opts.length < 4 && opts.length < pData.length) { let r = pData[Math.floor(Math.random()*pData.length)][key]; if(!opts.includes(r)) opts.push(r); }
+        while(opts.length < 4 && opts.length < pData.length) {
+            let r = pData[Math.floor(Math.random()*pData.length)][key]; if(!opts.includes(r)) opts.push(r);
+        }
         opts.sort(() => Math.random() - 0.5);
         const area = document.getElementById('btns'); area.innerHTML = '';
         opts.forEach(o => {
@@ -286,44 +303,54 @@
         });
     }
 
-    function cleanWord(w) { return w.replace(/[\(（].*?[）\)]/g, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ').trim().toLowerCase(); }
+    function cleanWord(w) { return w.replace(/[\(（].*?[）\)]/g, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|vi|vt)$/gi, ' ').trim(); }
 
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
-            let expected = cleanWord(getPool()[curIdx].w);
+            let pool = getPool(); 
+            let expected = cleanWord(pool[curIdx].w).toLowerCase();
             if(e.target.value.trim().toLowerCase() === expected) move(true); else move(false); 
         } 
     };
 
     function checkEnd() { if(curIdx >= getPool().length) { curIdx = 0; if(circle < 4 && circle !== 4) circle++; } update(); }
     function skip() { curIdx++; update(); }
-    function archiveCurrent() { let pool = getPool(); if(pool[curIdx]) { let p = projects.find(x => x.id == activeProjectId); if(p){ p.data.find(w => w.w === pool[curIdx].w).arc = true; saveAll(); update(); } } }
     
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
-        const title = document.getElementById('new-proj-name').value.trim() || `ENTRY_${Date.now().toString().slice(-4)}`;
+        const title = document.getElementById('new-proj-name').value.trim() || `档案 ${new Date().toLocaleDateString()}`;
+        if(!raw) return;
         let res = [];
-        if(raw.includes('\n\n')) raw.split(/\n\s*\n/).forEach(b => { let l = b.split('\n').map(x=>x.trim()).filter(x=>x); if(l.length>=2) res.push({w:l[0], d:l[1], arc:false}); });
-        else { let l = raw.split('\n').map(x=>x.trim()).filter(x=>x); for(let i=0; i<l.length; i+=2) if(l[i]&&l[i+1]) res.push({w:l[i],d:l[i+1],arc:false}); }
+        if(raw.includes('\n\n')) {
+            raw.split(/\n\s*\n/).forEach(b => { let l = b.split('\n').map(x=>x.trim()).filter(x=>x); if(l.length>=2) res.push({w:l[0], d:l[1], arc:false}); });
+        } else {
+            let l = raw.split('\n').map(x=>x.trim()).filter(x=>x); for(let i=0; i<l.length; i+=2) if(l[i]&&l[i+1]) res.push({w:l[i],d:l[i+1],arc:false});
+        }
         if(res.length>0) { let p = {id:Date.now(), title, data:res, circle:1, curIdx:0}; projects.push(p); activeProjectId=p.id; saveAll(); hideImporter(); update(); }
     }
 
+    function deleteProject(id, e) { e.stopPropagation(); if(confirm("抹除该档案？")) { projects = projects.filter(x=>x.id!=id); if(activeProjectId==id) activeProjectId=projects.length?projects[0].id:null; saveAll(); renderDashboard(); if(!projects.length) showImporter(); } }
     function showImporter() { document.getElementById('import-center').style.display='flex'; renderDashboard(); closePanel('left'); closePanel('right'); }
-    function hideImporter() { document.getElementById('import-center').style.display='none'; }
+    function hideImporter() { if(activeProjectId) document.getElementById('import-center').style.display='none'; }
     function openPanel(p) { document.getElementById('panel-'+p).classList.add('active'); if(p==='right') renderDashboard(); history.pushState(null,null,null); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; closePanel('left'); update(); }
 
     function renderDashboard() {
-        const html = projects.map(p => `<div class="archive-card" onclick="switchProject(${p.id})"><div style="flex:1;"><b style="color:${p.id==activeProjectId?'var(--blue)':'#fff'}">${p.title}</b><br><small style="opacity:0.4">${p.data.length} ITEMS</small></div><div class="del-btn" onclick="deleteProject(${p.id},event)">✕</div></div>`).join('');
-        document.getElementById('dashboard-project-list').innerHTML = html; document.getElementById('projects-container').innerHTML = html;
+        const list = document.getElementById('dashboard-project-list');
+        const sideList = document.getElementById('projects-container');
+        let html = projects.map(p => `<div class="archive-card" onclick="switchProject(${p.id})"><div style="flex:1;"><b style="color:${p.id==activeProjectId?'var(--blue)':'#fff'}">${p.title}</b><br><small style="color:#5c6370">${p.data.length} 词</small></div><div class="del-btn-wrap" onclick="deleteProject(${p.id},event)"><svg class="del-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div></div>`).join('');
+        list.innerHTML = html; sideList.innerHTML = html;
         if(projects.length>0) document.getElementById('existing-projects-area').style.display='block';
         if(activeProjectId) document.getElementById('btn-return-active').style.display='block';
     }
 
-    function deleteProject(id, e) { e.stopPropagation(); if(confirm("ERASE DATA?")) { projects = projects.filter(x=>x.id!=id); if(activeProjectId==id) activeProjectId=projects.length?projects[0].id:null; saveAll(); renderDashboard(); if(!projects.length) showImporter(); } }
+    function syncProgress() { if(circle !== 4) { let p = projects.find(x => x.id == activeProjectId); if(p) { p.curIdx = curIdx; p.circle = circle; saveAll(); } } }
+    function archiveCurrent() { let pool = getPool(); if(pool[curIdx]) { let p = projects.find(x => x.id == activeProjectId); if(p){ p.data.find(w => w.w === pool[curIdx].w).arc = true; saveAll(); update();} } }
+    function toggleFavCurrent() { let pool = getPool(); let p = projects.find(x => x.id == activeProjectId); if(p){ let word = p.data.find(w => w.w === pool[curIdx].w); word.fav = !word.fav; saveAll(); update();} }
+    function showList(t) { closePanel('right'); document.getElementById('modal-list').style.display='flex'; let p=projects.find(x=>x.id==activeProjectId); document.getElementById('list-content').innerHTML = p.data.map(w=>`<div class="list-row"><div><b>${w.w}</b><br><small style="color:#5c6370">${w.d}</small></div></div>`).join(''); }
 
-    window.onload = () => { updateUIStrings(); renderDashboard(); if(activeProjectId) update(); else showImporter(); };
+    window.onload = () => { renderDashboard(); if(activeProjectId) update(); else showImporter(); };
     async function loadPDFLib() { if(typeof pdfjsLib === 'undefined') await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js'); }
     async function loadWordLib() { if(typeof mammoth === 'undefined') await import('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'); }
     async function parsePDF(f) { await loadPDFLib(); const b = await f.arrayBuffer(); const pdf = await pdfjsLib.getDocument(b).promise; let l = []; for(let i=1; i<=pdf.numPages; i++) { const p = await pdf.getPage(i); const c = await p.getTextContent(); c.items.forEach(it => l.push(it.str)); } importPasteFromFile(l, f.name); }
