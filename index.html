@@ -7,9 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>LexByMe V55</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <title>LexByMe V56</title>
     <style>
         :root { 
             --bg: #000; --app-bg: #161b22; --text: #abb2bf;
@@ -49,12 +47,9 @@
         #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
         
         .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
-        
         #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
         .text-sentence { font-size: 1.4rem !important; line-height: 1.6 !important; text-align: left !important; font-weight: 300 !important; color: #e6edf3 !important; }
-
         #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; }
-        
         #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
         .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
@@ -79,50 +74,50 @@
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
         #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
 
+        /* ========= V56 大厅排版重构 ========= */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; padding: calc(var(--safe-top) + 40px) 25px; overflow-y: auto; align-items: center; }
         .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; padding-bottom: 50px;}
         
-        .archive-card { background: #0d1117; border: 1px solid var(--border); border-radius: 12px; padding: 15px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .archive-card:hover { border-color: var(--blue); }
-        .archive-card.active-card { border-color: var(--green); background: rgba(152, 195, 121, 0.05); }
-        .archive-title { font-weight: bold; font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
-        .archive-meta { font-size: 0.75rem; color: #5c6370; }
+        .db-section { background: #0d1117; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .db-section.primary { border-color: var(--blue); box-shadow: 0 0 20px rgba(97, 175, 239, 0.1); }
+        .db-section.active-zone { border-color: var(--green); background: rgba(152, 195, 121, 0.05); display: none; }
+        
+        .db-sec-title { font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
 
-        textarea.paste-area { width: 100%; height: 120px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; resize: none; font-family: inherit;}
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .archive-card { background: #161b22; border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .archive-card:hover { border-color: var(--blue); }
+        .archive-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
+        .archive-meta { font-size: 0.7rem; color: #5c6370; }
+
+        textarea.paste-area { width: 100%; height: 140px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 15px; resize: none; font-family: inherit;}
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
         .btn-main:hover { opacity: 0.8; }
+        /* ==================================== */
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
-        /* V55 居中报错体系 */
-        #toast-alert, #gentle-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            opacity: 0; pointer-events: none; z-index: 10000;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #toast-alert.show, #gentle-toast.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
         #toast-alert {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
             background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 1rem;
             padding: 20px 35px; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.6);
-            backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            z-index: 10000; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        #toast-alert.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
         #gentle-toast {
-            background: rgba(22, 27, 34, 0.98); 
-            padding: 30px 50px; border-radius: 16px; border: 1px solid #30363d;
-            backdrop-filter: blur(15px); box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(22, 27, 34, 0.98); padding: 30px 50px; border-radius: 16px; border: 1px solid #30363d;
+            z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 15px 40px rgba(0,0,0,0.8);
             display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 220px;
+            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        #gentle-toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         .gentle-zh { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #fff; margin-bottom: 12px; }
         .gentle-en { font-size: 0.7rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; font-family: monospace; }
         
         .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
-        
         .action-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; width: 18px; height: 18px; }
         .action-btn { background: none; border: none; color: #5c6370; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
         .action-btn.edit:hover { color: var(--blue); }
@@ -131,8 +126,7 @@
 
         @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
-            #word-text { font-size: 2.8rem; } 
-            .text-sentence { font-size: 1.8rem !important; }
+            #word-text { font-size: 2.8rem; } .text-sentence { font-size: 1.8rem !important; }
             #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
             #panel-right { right: 0; left: auto; width: 450px; border-left: 1px solid var(--border); }
             .opts-grid { grid-template-columns: 1fr 1fr; }
@@ -142,7 +136,6 @@
 <body>
 
 <div id="toast-alert">✕ WRONG</div>
-
 <div id="gentle-toast">
     <div class="gentle-zh">再试一次</div>
     <div class="gentle-en">TAKE YOUR TIME</div>
@@ -206,36 +199,40 @@
 
 <div id="import-center">
     <div class="dashboard-content">
-        <h1 style="font-weight: 200; margin-bottom: 10px; color:#fff; letter-spacing: 4px; text-align: center;">LexByMe</h1>
+        <h1 style="font-weight: 200; margin-bottom: 5px; color:#fff; letter-spacing: 4px; text-align: center;">LexByMe</h1>
         <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 2px;">Mirror Mirror</div>
 
-        <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000; margin-bottom:30px; display:none;" onclick="hideImporter()">
-            ⏎ 返回当前练习
-        </button>
-
-        <div id="existing-projects-area" style="display:none; margin-bottom: 40px;">
-            <div style="font-size: 0.75rem; color: var(--blue); margin-bottom: 15px; letter-spacing: 2px;">YOUR ARCHIVES 项目库</div>
-            <div id="dashboard-project-list"></div>
-        </div>
-
-        <div style="background: rgba(13,17,23,0.5); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 0.75rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px;">+ CREATE NEW 新建项目</div>
-            <select id="import-mode-selector" style="width: 100%; background: #0d1117; border: 1px solid var(--border); color: var(--blue); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
-                <option value="3">三行模式 (词 + 义 + 挖空例句) [推荐]</option>
-                <option value="2">两行模式 (词 + 义) [缺失C4]</option>
+        <div class="db-section primary">
+            <div class="db-sec-title" style="color: var(--blue);">1. Create New 新建练习</div>
+            <select id="import-mode-selector" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
+                <option value="3">三行模式 (含 C4 例句) [推荐]</option>
+                <option value="2">两行模式 (仅词与义) [缺失 C4]</option>
             </select>
             <input type="text" id="new-proj-name" placeholder="项目名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
-            <textarea id="raw-text" class="paste-area" placeholder="在此粘贴单词文本..."></textarea>
+            <textarea id="raw-text" class="paste-area" placeholder="【智能防呆识别】&#10;建议在每组单词之间留一个空行，系统会自动完美拼接拆乱的句子。"></textarea>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <label for="p-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">PDF 导入</label>
-                <label for="d-in" style="background:#21262d; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">Word 导入</label>
+                <label for="p-in" style="background:#21262d; color:#fff; padding:10px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📄 PDF 导入</label>
+                <label for="d-in" style="background:#21262d; color:#fff; padding:10px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📝 Word 导入</label>
             </div>
             <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
             <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
             
-            <button class="btn-main" onclick="importPaste()">开始练习</button>
+            <button class="btn-main" onclick="importPaste()">开始练习 START</button>
         </div>
+
+        <div class="db-section active-zone" id="active-return-section">
+            <div class="db-sec-title" style="color: var(--green);">2. Active 当前练习</div>
+            <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000;" onclick="hideImporter()">
+                ⏎ 返回继续
+            </button>
+        </div>
+
+        <div class="db-section" id="existing-projects-area" style="display:none; border-color: transparent;">
+            <div class="db-sec-title" style="color: #5c6370;">3. Archives 历史项目库</div>
+            <div id="dashboard-project-list"></div>
+        </div>
+
     </div>
 </div>
 
@@ -256,15 +253,6 @@
     
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
     let spellWrongCount = 0;
-
-    // 兼容迁移机制
-    if (projects.length === 0 && (localStorage.getItem('v51_data') || localStorage.getItem('v50_data'))) {
-        const oldData = JSON.parse(localStorage.getItem('v51_data')) || JSON.parse(localStorage.getItem('v50_data'));
-        if (oldData) {
-            const newProj = { id: Date.now(), title: "默认档案", data: oldData, curIdx: 0, circle: 1 };
-            projects.push(newProj); activeProjectId = newProj.id; saveAll();
-        }
-    }
 
     function saveAll() {
         localStorage.setItem('dh_projects', JSON.stringify(projects));
@@ -330,59 +318,107 @@
 
         const dListArea = document.getElementById('existing-projects-area');
         const dList = document.getElementById('dashboard-project-list');
+        const activeSec = document.getElementById('active-return-section');
         const retBtn = document.getElementById('btn-return-active');
 
         if(projects.length > 0) {
             dListArea.style.display = 'block';
             dList.innerHTML = projects.map(p => `
-                <div class="archive-card ${p.id == activeProjectId ? 'active-card' : ''}" onclick="switchProject(${p.id})">
+                <div class="archive-card" onclick="switchProject(${p.id})">
                     <div>
                         <div class="archive-title">${p.title}</div>
                         <div class="archive-meta">Circle ${p.circle} • 进度 ${p.curIdx}/${p.data.length}</div>
                     </div>
-                    <div style="color:${p.id == activeProjectId ? 'var(--green)' : 'var(--blue)'}; font-size:1rem; font-weight:bold;">${p.id == activeProjectId ? '当前' : '→'}</div>
+                    <div style="color:${p.id == activeProjectId ? 'var(--green)' : '#5c6370'}; font-size:1.2rem;">→</div>
                 </div>
             `).join('');
         } else { dListArea.style.display = 'none'; }
 
         if(activeProjectId && projects.find(x => x.id == activeProjectId)) {
             let activeP = projects.find(x => x.id == activeProjectId);
-            retBtn.innerText = `⏎ 返回继续：${activeP.title}`; retBtn.style.display = 'block'; 
-        } else { retBtn.style.display = 'none'; }
+            retBtn.innerText = `⏎ 返回继续：${activeP.title}`; 
+            activeSec.style.display = 'block'; 
+        } else { activeSec.style.display = 'none'; }
     }
 
     function openPanel(p) { if(p === 'right') renderProjectLists(); document.getElementById('panel-'+p).classList.add('active'); }
     function closePanel(p) { document.getElementById('panel-'+p).classList.remove('active'); }
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; syncProgress(); closePanel('left'); update(); }
-    function toggleRandom() { isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; update(); }
+    
+    function toggleRandom() { 
+        isRandom = !isRandom; 
+        document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; 
+        let p = projects.find(x => x.id == activeProjectId);
+        if (p) {
+            if (isRandom) {
+                let act = p.data.filter(w => !w.arc).sort(() => Math.random() - 0.5);
+                let arc = p.data.filter(w => w.arc);
+                p.data = [...act, ...arc];
+            }
+            curIdx = 0; saveAll();
+        }
+        update(); 
+    }
+    
     function toggleFavMode() { isFavMode = !isFavMode; document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF"; curIdx = 0; update(); }
 
     function importPaste() {
         const raw = document.getElementById('raw-text').value.trim();
         const title = document.getElementById('new-proj-name').value.trim() || `档案 ${new Date().toLocaleDateString()}`;
         if(!raw) return; 
-        build(raw.split('\n').map(l=>l.trim()).filter(l=>l), title);
+        
+        // V56 智能区块解析引擎 (优先以空行切割，彻底防止例句换行导致崩溃)
+        let mode = parseInt(document.getElementById('import-mode-selector').value);
+        let res = [];
+        
+        if (raw.includes('\n\n')) {
+            let blocks = raw.split(/\n\s*\n/);
+            blocks.forEach(block => {
+                let blines = block.split('\n').map(l=>l.trim()).filter(l=>l);
+                if (blines.length >= 2) {
+                    res.push({
+                        w: blines[0], 
+                        d: blines[1], 
+                        s: mode === 3 ? (blines.slice(2).join(' ') || "【缺失引导例句】") : "【缺失引导例句】", 
+                        arc: false, fav: false
+                    });
+                }
+            });
+        } else {
+            // 传统按行切割后备方案
+            let lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
+            for(let i=0; i<lines.length; i+=mode) {
+                if(lines[i] && lines[i+1]) {
+                    res.push({
+                        w: lines[i], d: lines[i+1], 
+                        s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句】", 
+                        arc: false, fav: false
+                    });
+                }
+            }
+        }
+        
+        const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
+        projects.push(newProj); activeProjectId = newProj.id; saveAll();
+        document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
+        document.getElementById('import-center').style.display = 'none';
+        renderProjectLists(); update();
     }
 
-    // 🎯 V55 智能分流构建：通过选项判断数据是两行还是三行
-    function build(lines, title) {
+    function buildFromFiles(lines, title) {
+        let mode = parseInt(document.getElementById('import-mode-selector').value);
         let res = [];
-        let mode = parseInt(document.getElementById('import-mode-selector').value); // 2 或 3
-        
         for(let i=0; i<lines.length; i+=mode) {
             if(lines[i] && lines[i+1]) {
                 res.push({
-                    w: lines[i], 
-                    d: lines[i+1], 
-                    s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句，请在原文件中补充】", 
-                    arc: false, 
-                    fav: false
+                    w: lines[i], d: lines[i+1], 
+                    s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句】", 
+                    arc: false, fav: false
                 });
             }
         }
         const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
         projects.push(newProj); activeProjectId = newProj.id; saveAll();
-        document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
         document.getElementById('import-center').style.display = 'none';
         renderProjectLists(); update();
     }
@@ -398,10 +434,9 @@
         let pool = getPool();
         if(ok) {
             locked = true; spellWrongCount = 0;
-            // V55: 取消顶部单词变绿，只保留选项本身变绿，由 renderOpts 处理 button class
             setTimeout(() => { 
                 curIdx++; locked = false; syncProgress(); checkEnd(); 
-            }, 400); // 预留 0.4s 让用户看到绿色选项
+            }, 400); 
         } 
         else {
             errors++;
@@ -499,7 +534,7 @@
             b.onclick = () => { 
                 if(!locked) { 
                     if(o === corr) { 
-                        b.classList.add('correct'); // 只保留选项变绿
+                        b.classList.add('correct'); 
                         move(true); 
                     } else { 
                         b.classList.add('wrong-shake'); 
@@ -574,13 +609,13 @@
             });
             Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
         }
-        build(lines.filter(l=>l), title);
+        buildFromFiles(lines.filter(l=>l), title);
     }
     
     async function parseDOC(file) {
         document.getElementById('word-text').innerText = "Loading..."; await loadWordLib();
         const title = document.getElementById('new-proj-name').value.trim() || file.name.replace('.docx', '');
-        file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => build(r.value.split('\n').filter(l=>l.trim()), title)));
+        file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => buildFromFiles(r.value.split('\n').filter(l=>l.trim()), title)));
     }
 </script>
 
