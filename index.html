@@ -7,11 +7,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>LexByMe V56</title>
+    <title>LexByMe V59</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root { 
             --bg: #000; --app-bg: #161b22; --text: #abb2bf;
-            --blue: #61afef; --green: #98c379; --red: #ff4444; --border: #30363d;
+            --blue: #0ff; /* 赛博青 */
+            --green: #98c379; --red: #ff4444; --border: #1a2a3a;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -23,7 +26,7 @@
         header {
             padding-top: calc(var(--safe-top) + 15px); padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(13, 17, 23, 0.9); border-bottom: 1px solid var(--border);
+            background: rgba(5, 5, 5, 0.9); border-bottom: 1px solid var(--border);
             flex-shrink: 0; z-index: 200; backdrop-filter: blur(10px);
         }
         .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: color 0.2s; }
@@ -47,14 +50,14 @@
         #main-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; position: relative; }
         
         .word-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0 10px; }
-        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; transition: color 0.15s ease-in-out; }
-        .text-sentence { font-size: 1.4rem !important; line-height: 1.6 !important; text-align: left !important; font-weight: 300 !important; color: #e6edf3 !important; }
+        #word-text { font-size: 2.2rem; font-weight: 200; color: #fff; text-align: center; line-height: 1.2; word-wrap: break-word; }
         #fav-btn { font-size: 1.8rem; cursor: pointer; color: #5c6370; }
-        #hint-text { font-size: 0.75rem; color: #5c6370; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
+        #hint-text { font-size: 0.75rem; color: var(--blue); text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 35px; }
 
         .opts-grid { display: grid; gap: 15px; width: 100%; margin-bottom: 30px; }
-        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 12px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
-        button.choice:hover { border-color: var(--blue); background: #1c2128; }
+        button.choice { background: var(--app-bg); color: var(--text); border: 1px solid var(--border); padding: 20px 15px; font-size: 1rem; border-radius: 8px; text-align: left; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
+        button.choice:hover { border-color: var(--blue); background: rgba(0, 255, 255, 0.05); }
+        /* V59: 仅选项框变绿 */
         button.choice.correct { background: var(--green) !important; color: #000 !important; font-weight: bold; border-color: var(--green) !important;}
         button.choice.wrong-shake { animation: shake 0.4s; border-color: var(--red) !important; color: var(--red) !important; }
         
@@ -65,59 +68,71 @@
 
         footer {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 800px; margin: 0 auto;
-            background: #0d1117; border-top: 1px solid var(--border);
+            background: rgba(5, 5, 5, 0.9); border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
         .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; padding: 10px; cursor: pointer; transition: color 0.2s; }
         .footer-btn:hover { color: #fff; }
 
         .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
-        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; }
+        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; box-shadow: 0 0 10px var(--blue); }
 
-        /* ========= V56 大厅排版重构 ========= */
+        /* ========= V59 大厅层级重构 ========= */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; padding: calc(var(--safe-top) + 40px) 25px; overflow-y: auto; align-items: center; }
         .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; padding-bottom: 50px;}
         
-        .db-section { background: #0d1117; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        .db-section.primary { border-color: var(--blue); box-shadow: 0 0 20px rgba(97, 175, 239, 0.1); }
-        .db-section.active-zone { border-color: var(--green); background: rgba(152, 195, 121, 0.05); display: none; }
-        
-        .db-sec-title { font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+        .db-section { background: rgba(10, 14, 20, 0.8); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .db-section.primary { border-color: rgba(0, 255, 255, 0.3); box-shadow: 0 0 30px rgba(0, 255, 255, 0.05); }
+        .db-sec-title { font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }
 
-        .archive-card { background: #161b22; border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .archive-card { background: #050505; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
         .archive-card:hover { border-color: var(--blue); }
+        .archive-card.active-card { border-color: var(--green); background: rgba(152, 195, 121, 0.05); }
         .archive-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
         .archive-meta { font-size: 0.7rem; color: #5c6370; }
 
-        textarea.paste-area { width: 100%; height: 140px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 15px; resize: none; font-family: inherit;}
-        .btn-main { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        textarea.paste-area { width: 100%; height: 120px; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 15px; resize: none; font-family: inherit;}
+        .btn-main { background: var(--blue); color: #000; border: none; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
         .btn-main:hover { opacity: 0.8; }
-        /* ==================================== */
+        
+        /* 层次感核心：返回按钮无缝衔接在开始按钮下方 */
+        .btn-return { background: rgba(152, 195, 121, 0.15); color: var(--green); border: 1px solid var(--green); margin-top: 15px; display: none; }
+        .btn-return:hover { background: var(--green); color: #000; }
         
         .modal-full { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 60px 20px; overflow-y: auto; }
         .list-row { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
+        /* V59 赛博全息故障 UI (Holographic Glitch) 完美居中 */
+        #hud-glitch {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(10, 15, 20, 0.95); border: 1px solid var(--blue);
+            padding: 30px 50px; border-radius: 4px; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(10px); z-index: 10000; display: flex; flex-direction: column; align-items: center;
+            opacity: 0; pointer-events: none; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #hud-glitch.show { transform: translate(-50%, -50%) scale(1); opacity: 1; animation: glitch-anim 0.2s cubic-bezier(.25,.46,.45,.94) both infinite; }
+        #hud-glitch.show.stable { animation: none; } 
+        
+        .hud-zh { font-family: sans-serif; font-size: 1.4rem; color: #fff; letter-spacing: 6px; text-shadow: 2px 0 0 #f00, -2px 0 0 #0ff; margin-bottom: 8px; font-weight: 300;}
+        .hud-en { font-family: 'Courier New', Courier, monospace; font-size: 0.7rem; color: var(--blue); letter-spacing: 4px; opacity: 0.8;}
+
+        @keyframes glitch-anim {
+            0% { transform: translate(-50%, -50%) scale(1) skewX(2deg); }
+            20% { transform: translate(-51%, -49%) scale(1) skewX(-2deg); }
+            40% { transform: translate(-49%, -51%) scale(1) skewX(1deg); }
+            60% { transform: translate(-50%, -50%) scale(1); }
+        }
+
         #toast-alert {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(13, 17, 23, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 1rem;
-            padding: 20px 35px; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.6);
-            z-index: 10000; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(20, 5, 5, 0.95); color: var(--red); font-weight: 300; letter-spacing: 2px; font-size: 1rem;
+            padding: 20px 35px; border-radius: 4px; border: 1px solid rgba(255, 68, 68, 0.5);
+            backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; box-shadow: 0 0 20px rgba(255,68,68,0.2);
+            opacity: 0; pointer-events: none; transition: all 0.2s; text-align: center;
         }
         #toast-alert.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
-        #gentle-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(22, 27, 34, 0.98); padding: 30px 50px; border-radius: 16px; border: 1px solid #30363d;
-            z-index: 10000; backdrop-filter: blur(15px); box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 220px;
-            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #gentle-toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        .gentle-zh { font-size: 1.2rem; font-weight: 300; letter-spacing: 4px; color: #fff; margin-bottom: 12px; }
-        .gentle-en { font-size: 0.7rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; font-family: monospace; }
-        
-        .proj-badge { font-size: 0.65rem; background: #1c2128; color: var(--text); padding: 4px 8px; border-radius: 6px; margin-left: 8px; border: 1px solid var(--border); }
+        .proj-badge { font-size: 0.65rem; background: #111; color: var(--text); padding: 4px 8px; border-radius: 4px; margin-left: 8px; border: 1px solid var(--border); }
         .action-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; width: 18px; height: 18px; }
         .action-btn { background: none; border: none; color: #5c6370; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
         .action-btn.edit:hover { color: var(--blue); }
@@ -126,7 +141,7 @@
 
         @media (max-width: 767px) { .side-panel { left: 0; right: 0; } }
         @media (min-width: 768px) {
-            #word-text { font-size: 2.8rem; } .text-sentence { font-size: 1.8rem !important; }
+            #word-text { font-size: 2.8rem; }
             #panel-left { left: 0; right: auto; width: 380px; border-right: 1px solid var(--border); }
             #panel-right { right: 0; left: auto; width: 450px; border-left: 1px solid var(--border); }
             .opts-grid { grid-template-columns: 1fr 1fr; }
@@ -135,18 +150,18 @@
 </head>
 <body>
 
-<div id="toast-alert">✕ WRONG</div>
-<div id="gentle-toast">
-    <div class="gentle-zh">再试一次</div>
-    <div class="gentle-en">TAKE YOUR TIME</div>
+<div id="toast-alert">✕ SYSTEM ERROR</div>
+<div id="hud-glitch">
+    <div class="hud-zh">再试一次</div>
+    <div class="hud-en">TAKE YOUR TIME</div>
 </div>
 
 <div class="wrapper">
     <header>
         <div class="icon-btn" style="font-size: 1.5rem;" onclick="openPanel('left')">☰</div>
         <div style="text-align: center;">
-            <div style="font-size: 0.95rem; font-weight: bold; letter-spacing: 2px; color: var(--blue);">LexByMe</div>
-            <div id="current-project-name" style="font-size: 0.5rem; color: #5c6370; letter-spacing: 1px; margin-top: 3px;"></div>
+            <div style="font-size: 0.95rem; font-weight: bold; letter-spacing: 3px; color: var(--blue);">LexByMe</div>
+            <div id="current-project-name" style="font-size: 0.5rem; color: #5c6370; letter-spacing: 1px; margin-top: 3px; text-transform: uppercase;"></div>
         </div>
         <div class="icon-btn" onclick="openPanel('right')"><div class="repo-icon"><span></span><span></span><span></span></div></div>
     </header>
@@ -159,6 +174,7 @@
             <div id="fav-btn" onclick="toggleFavCurrent()">☆</div>
         </div>
         <div id="hint-text">Waiting</div>
+        
         <div class="opts-grid" id="btns"></div>
         <input type="text" id="spell-box" class="input-box" placeholder="TYPE & ENTER" autocomplete="off" autocapitalize="off">
     </main>
@@ -171,29 +187,30 @@
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase;">Set Mode</h3>
-    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: 识别 (Identify)</div>
-    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: 回想 (Recall)</div>
-    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: 拼写 (Spelling)</div>
-    <div class="panel-item" onclick="setCircle(4)" id="m4">Circle 4: 实战 (Role-play)</div>
+    <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase;">Settings</h3>
+    <div class="panel-item" onclick="setCircle(1)" id="m1">Circle 1: Identify (识别)</div>
+    <div class="panel-item" onclick="setCircle(2)" id="m2">Circle 2: Recall (回想)</div>
+    <div class="panel-item" onclick="setCircle(3)" id="m3">Circle 3: Spelling (拼写)</div>
+    <div class="panel-item" onclick="setCircle(4)" id="m4" style="color: var(--red);">Circle 4: Weakness (错题歼灭)</div>
     
-    <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 10px;">
+    <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 10px;">
         <div class="panel-item" onclick="toggleRandom()">随机模式 <span id="rand-status" style="color:#5c6370">OFF</span></div>
-        <div class="panel-item" onclick="toggleFavMode()">收藏训练 <span id="fav-status" style="color:#5c6370">OFF</span></div>
-        <div class="panel-item" onclick="showImporter()" style="color:var(--blue); margin-top:20px; border:none; justify-content:center;">+ 切换 / 新建项目</div>
+        <div class="panel-item" onclick="toggleFavMode()">星标特训 <span id="fav-status" style="color:#5c6370">OFF</span></div>
     </div>
+
+    <div class="panel-item" onclick="showImporter()" style="color:var(--blue); margin-top:30px; border:none; justify-content:center;">+ 主控大厅</div>
 </div>
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
     <h3 style="color:var(--blue); font-weight: 200; margin-bottom: 25px; text-transform: uppercase;">Library</h3>
     <div id="project-list-area" style="margin-bottom: 30px;">
-        <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 15px; letter-spacing: 1px;">PROJECTS 项目存档</div>
+        <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 15px; letter-spacing: 1px;">PROJECTS 档案库</div>
         <div id="projects-container"></div>
     </div>
     
-    <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 10px; letter-spacing: 1px; border-top: 1px solid var(--border); padding-top: 20px;">CURRENT DATA 当前数据</div>
-    <div class="panel-item" onclick="showList('all')">全量清单 (Full List)</div>
+    <div style="font-size: 0.7rem; color: #5c6370; margin-bottom: 10px; letter-spacing: 1px; border-top: 1px solid var(--border); padding-top: 20px;">DATA 数据管理</div>
+    <div class="panel-item" onclick="showList('all')">完整清单 (Full List)</div>
     <div class="panel-item" onclick="showList('arc')">归档仓库 (Archive)</div>
 </div>
 
@@ -203,36 +220,25 @@
         <div style="text-align: center; color: #5c6370; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 2px;">Mirror Mirror</div>
 
         <div class="db-section primary">
-            <div class="db-sec-title" style="color: var(--blue);">1. Create New 新建练习</div>
-            <select id="import-mode-selector" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
-                <option value="3">三行模式 (含 C4 例句) [推荐]</option>
-                <option value="2">两行模式 (仅词与义) [缺失 C4]</option>
-            </select>
-            <input type="text" id="new-proj-name" placeholder="项目名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
-            <textarea id="raw-text" class="paste-area" placeholder="【智能防呆识别】&#10;建议在每组单词之间留一个空行，系统会自动完美拼接拆乱的句子。"></textarea>
+            <div class="db-sec-title" style="color: var(--blue);">1. Initialize 数据接入</div>
+            <input type="text" id="new-proj-name" placeholder="档案名称 (选填)" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem;">
+            <textarea id="raw-text" class="paste-area" placeholder="请粘贴数据：&#10;1. 英文单词&#10;2. 中文释义&#10;&#10;(每组之间留空行防呆)"></textarea>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <label for="p-in" style="background:#21262d; color:#fff; padding:10px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📄 PDF 导入</label>
-                <label for="d-in" style="background:#21262d; color:#fff; padding:10px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📝 Word 导入</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <label for="p-in" style="background:#111; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📄 PDF 导入</label>
+                <label for="d-in" style="background:#111; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:0.85rem; cursor:pointer; border: 1px solid var(--border);">📝 Word 导入</label>
             </div>
             <input type="file" id="p-in" style="display:none" accept=".pdf" onchange="parsePDF(this.files[0])">
             <input type="file" id="d-in" style="display:none" accept=".docx" onchange="parseDOC(this.files[0])">
             
-            <button class="btn-main" onclick="importPaste()">开始练习 START</button>
+            <button class="btn-main" onclick="importPaste()">START 开始练习</button>
+            <button id="btn-return-active" class="btn-main btn-return" onclick="hideImporter()">⏎ 返回继续当前档案</button>
         </div>
 
-        <div class="db-section active-zone" id="active-return-section">
-            <div class="db-sec-title" style="color: var(--green);">2. Active 当前练习</div>
-            <button id="btn-return-active" class="btn-main" style="background:var(--green); color:#000;" onclick="hideImporter()">
-                ⏎ 返回继续
-            </button>
-        </div>
-
-        <div class="db-section" id="existing-projects-area" style="display:none; border-color: transparent;">
-            <div class="db-sec-title" style="color: #5c6370;">3. Archives 历史项目库</div>
+        <div class="db-section" id="existing-projects-area" style="display:none; border-color: transparent; padding-top: 0;">
+            <div class="db-sec-title" style="color: #5c6370;">2. Archives 历史集群</div>
             <div id="dashboard-project-list"></div>
         </div>
-
     </div>
 </div>
 
@@ -254,6 +260,12 @@
     let circle = 1, curIdx = 0, errors = 0, locked = false, isRandom = false, isFavMode = false;
     let spellWrongCount = 0;
 
+    // 清洗残缺数据，并确保拥有 failCount 属性
+    projects.forEach(p => { 
+        p.data = p.data.filter(w => w.w && w.d); 
+        p.data.forEach(w => { if(typeof w.failCount === 'undefined') w.failCount = 0; });
+    });
+
     function saveAll() {
         localStorage.setItem('dh_projects', JSON.stringify(projects));
         if(activeProjectId) localStorage.setItem('dh_active_id', activeProjectId);
@@ -267,48 +279,32 @@
         if(p) {
             activeProjectId = id; curIdx = p.curIdx || 0; circle = p.circle || 1;
             isFavMode = false; isRandom = false; saveAll();
-            hideImporter(); 
-            if(!keepPanelOpen) { closePanel('right'); closePanel('left'); }
+            hideImporter(); if(!keepPanelOpen) { closePanel('right'); closePanel('left'); }
             update();
         }
     }
 
     function renameProject(id, event) {
-        event.stopPropagation();
-        let p = projects.find(x => x.id == id);
-        if(!p) return;
+        event.stopPropagation(); let p = projects.find(x => x.id == id); if(!p) return;
         let newName = prompt("重命名档案：", p.title);
-        if(newName && newName.trim() !== "") {
-            p.title = newName.trim(); saveAll(); renderProjectLists();
-            if(activeProjectId == id) document.getElementById('current-project-name').innerText = p.title;
-        }
+        if(newName && newName.trim() !== "") { p.title = newName.trim(); saveAll(); renderProjectLists(); if(activeProjectId == id) document.getElementById('current-project-name').innerText = p.title; }
     }
 
     function deleteProject(id, event) {
-        event.stopPropagation();
-        if(!confirm("确定彻底删除该存档？")) return;
+        event.stopPropagation(); if(!confirm("执行抹除协议？数据无法恢复。")) return;
         projects = projects.filter(x => x.id != id);
-        
-        if(activeProjectId == id) {
-            activeProjectId = projects.length > 0 ? projects[0].id : null;
-            if(activeProjectId) { switchProject(activeProjectId, true); } else { update(); }
-        }
-        saveAll(); renderProjectLists();
-        if(projects.length === 0) showImporter();
+        if(activeProjectId == id) { activeProjectId = projects.length > 0 ? projects[0].id : null; if(activeProjectId) { switchProject(activeProjectId, true); } else { update(); } }
+        saveAll(); renderProjectLists(); if(projects.length === 0) showImporter();
     }
 
-    function showImporter() { 
-        document.getElementById('import-center').style.display='flex'; 
-        renderProjectLists(); closePanel('left'); closePanel('right');
-    }
-    
+    function showImporter() { document.getElementById('import-center').style.display='flex'; renderProjectLists(); closePanel('left'); closePanel('right'); }
     function hideImporter() { if(activeProjectId) document.getElementById('import-center').style.display='none'; }
 
     function renderProjectLists() {
         const rList = document.getElementById('projects-container');
         rList.innerHTML = projects.map(p => `
             <div class="panel-item ${p.id == activeProjectId ? 'active' : ''}" onclick="switchProject(${p.id})">
-                <div style="flex:1;">${p.title} <span class="proj-badge">${p.data.length} 词</span></div>
+                <div style="flex:1;">${p.title} <span class="proj-badge">${p.data.length}</span></div>
                 <div class="action-group">
                     <div class="action-btn edit" onclick="renameProject(${p.id}, event)"><svg class="action-icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
                     <div class="action-btn del" onclick="deleteProject(${p.id}, event)"><svg class="action-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
@@ -318,17 +314,13 @@
 
         const dListArea = document.getElementById('existing-projects-area');
         const dList = document.getElementById('dashboard-project-list');
-        const activeSec = document.getElementById('active-return-section');
         const retBtn = document.getElementById('btn-return-active');
 
         if(projects.length > 0) {
             dListArea.style.display = 'block';
             dList.innerHTML = projects.map(p => `
-                <div class="archive-card" onclick="switchProject(${p.id})">
-                    <div>
-                        <div class="archive-title">${p.title}</div>
-                        <div class="archive-meta">Circle ${p.circle} • 进度 ${p.curIdx}/${p.data.length}</div>
-                    </div>
+                <div class="archive-card ${p.id == activeProjectId ? 'active-card' : ''}" onclick="switchProject(${p.id})">
+                    <div><div class="archive-title">${p.title}</div><div class="archive-meta">Circle ${p.circle} • 进度 ${p.curIdx}/${p.data.length}</div></div>
                     <div style="color:${p.id == activeProjectId ? 'var(--green)' : '#5c6370'}; font-size:1.2rem;">→</div>
                 </div>
             `).join('');
@@ -336,9 +328,8 @@
 
         if(activeProjectId && projects.find(x => x.id == activeProjectId)) {
             let activeP = projects.find(x => x.id == activeProjectId);
-            retBtn.innerText = `⏎ 返回继续：${activeP.title}`; 
-            activeSec.style.display = 'block'; 
-        } else { activeSec.style.display = 'none'; }
+            retBtn.innerText = `⏎ 返回继续：${activeP.title}`; retBtn.style.display = 'block'; 
+        } else { retBtn.style.display = 'none'; }
     }
 
     function openPanel(p) { if(p === 'right') renderProjectLists(); document.getElementById('panel-'+p).classList.add('active'); }
@@ -346,20 +337,11 @@
     function setCircle(n) { circle = n; curIdx = 0; errors = 0; syncProgress(); closePanel('left'); update(); }
     
     function toggleRandom() { 
-        isRandom = !isRandom; 
-        document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; 
+        isRandom = !isRandom; document.getElementById('rand-status').innerText = isRandom ? "ON" : "OFF"; 
         let p = projects.find(x => x.id == activeProjectId);
-        if (p) {
-            if (isRandom) {
-                let act = p.data.filter(w => !w.arc).sort(() => Math.random() - 0.5);
-                let arc = p.data.filter(w => w.arc);
-                p.data = [...act, ...arc];
-            }
-            curIdx = 0; saveAll();
-        }
+        if (p) { if (isRandom) { let act = p.data.filter(w => !w.arc).sort(() => Math.random() - 0.5); let arc = p.data.filter(w => w.arc); p.data = [...act, ...arc]; } curIdx = 0; saveAll(); }
         update(); 
     }
-    
     function toggleFavMode() { isFavMode = !isFavMode; document.getElementById('fav-status').innerText = isFavMode ? "ON" : "OFF"; curIdx = 0; update(); }
 
     function importPaste() {
@@ -367,96 +349,65 @@
         const title = document.getElementById('new-proj-name').value.trim() || `档案 ${new Date().toLocaleDateString()}`;
         if(!raw) return; 
         
-        // V56 智能区块解析引擎 (优先以空行切割，彻底防止例句换行导致崩溃)
-        let mode = parseInt(document.getElementById('import-mode-selector').value);
         let res = [];
+        let blocks = raw.split(/\n\s*\n/);
+        blocks.forEach(block => {
+            let blines = block.split('\n').map(l=>l.trim()).filter(l=>l);
+            if (blines.length >= 2) res.push({ w: blines[0], d: blines[1], arc: false, fav: false, failCount: 0 });
+        });
         
-        if (raw.includes('\n\n')) {
-            let blocks = raw.split(/\n\s*\n/);
-            blocks.forEach(block => {
-                let blines = block.split('\n').map(l=>l.trim()).filter(l=>l);
-                if (blines.length >= 2) {
-                    res.push({
-                        w: blines[0], 
-                        d: blines[1], 
-                        s: mode === 3 ? (blines.slice(2).join(' ') || "【缺失引导例句】") : "【缺失引导例句】", 
-                        arc: false, fav: false
-                    });
-                }
-            });
-        } else {
-            // 传统按行切割后备方案
+        if (res.length === 0) {
             let lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
-            for(let i=0; i<lines.length; i+=mode) {
-                if(lines[i] && lines[i+1]) {
-                    res.push({
-                        w: lines[i], d: lines[i+1], 
-                        s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句】", 
-                        arc: false, fav: false
-                    });
-                }
-            }
+            for(let i=0; i<lines.length; i+=2) if(lines[i] && lines[i+1]) res.push({ w: lines[i], d: lines[i+1], arc: false, fav: false, failCount: 0 });
         }
         
         const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
         projects.push(newProj); activeProjectId = newProj.id; saveAll();
         document.getElementById('raw-text').value = ''; document.getElementById('new-proj-name').value = '';
-        document.getElementById('import-center').style.display = 'none';
-        renderProjectLists(); update();
+        document.getElementById('import-center').style.display = 'none'; renderProjectLists(); update();
     }
 
     function buildFromFiles(lines, title) {
-        let mode = parseInt(document.getElementById('import-mode-selector').value);
         let res = [];
-        for(let i=0; i<lines.length; i+=mode) {
-            if(lines[i] && lines[i+1]) {
-                res.push({
-                    w: lines[i], d: lines[i+1], 
-                    s: (mode === 3 && lines[i+2]) ? lines[i+2] : "【缺失引导例句】", 
-                    arc: false, fav: false
-                });
-            }
-        }
+        for(let i=0; i<lines.length; i+=2) if(lines[i] && lines[i+1]) res.push({ w: lines[i], d: lines[i+1], arc: false, fav: false, failCount: 0 });
         const newProj = { id: Date.now(), title: title, data: res, curIdx: 0, circle: 1 };
         projects.push(newProj); activeProjectId = newProj.id; saveAll();
-        document.getElementById('import-center').style.display = 'none';
-        renderProjectLists(); update();
+        document.getElementById('import-center').style.display = 'none'; renderProjectLists(); update();
     }
 
-    function cleanWord(w) {
-        let cleaned = w.replace(/[\(（].*?[）\)]/g, ' '); 
-        cleaned = cleaned.replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ');
-        cleaned = cleaned.replace(/\b(adj|adv|prep|pron|conj|interj|vi|vt)$/gi, ' '); 
-        return cleaned.trim();
-    }
+    function cleanWord(w) { return w.replace(/[\(（].*?[）\)]/g, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|vi|vt)$/gi, ' ').trim(); }
 
     function move(ok) {
         let pool = getPool();
+        let p = projects.find(x => x.id == activeProjectId);
+        
         if(ok) {
             locked = true; spellWrongCount = 0;
-            setTimeout(() => { 
-                curIdx++; locked = false; syncProgress(); checkEnd(); 
-            }, 400); 
+            // 选对时，词不绿，仅让按钮绿，0.4s后切下一题
+            setTimeout(() => { curIdx++; locked = false; syncProgress(); checkEnd(); }, 400); 
         } 
         else {
             errors++;
-            if(circle === 3) {
+            // 🎯 V59 核心：记录错题次数
+            let targetObj = p.data.find(w => w.w === pool[curIdx].w);
+            if(targetObj) targetObj.failCount = (targetObj.failCount || 0) + 1;
+            saveAll();
+
+            if(circle === 3 || circle === 4 && document.getElementById('spell-box').style.display === 'block') {
                 spellWrongCount++;
                 if(spellWrongCount === 1) {
-                    const gt = document.getElementById('gentle-toast');
-                    gt.classList.add('show');
-                    setTimeout(() => gt.classList.remove('show'), 1500);
+                    const gt = document.getElementById('hud-glitch');
+                    gt.classList.add('show'); setTimeout(() => { gt.classList.add('stable'); }, 300); 
+                    setTimeout(() => { gt.classList.remove('show'); gt.classList.remove('stable'); }, 1500);
                 }
                 else {
                     const t = document.getElementById('toast-alert');
                     t.innerHTML = `<span style="color:#5c6370; font-size:0.7rem;">ANS:</span> ${pool[curIdx].w}`;
-                    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
-                    spellWrongCount = 0;
+                    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); spellWrongCount = 0;
                 }
             } else {
                 const t = document.getElementById('toast-alert');
-                t.innerHTML = "✕ WRONG"; t.classList.add('show');
-                setTimeout(() => t.classList.remove('show'), 1200);
+                t.innerHTML = "✕ WRONG"; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1200);
             }
         } 
     }
@@ -466,10 +417,9 @@
         const wt = document.getElementById('word-text');
         
         if(!p) { 
-            document.getElementById('current-project-name').innerText = "NO PROJECT";
+            document.getElementById('current-project-name').innerText = "NO LINK";
             wt.innerText = "NO DATA"; wt.className = '';
-            document.getElementById('fav-btn').style.display = 'none';
-            document.getElementById('btns').style.display = 'none';
+            document.getElementById('fav-btn').style.display = 'none'; document.getElementById('btns').style.display = 'none';
             document.getElementById('spell-box').style.display = 'none';
             return; 
         }
@@ -478,9 +428,9 @@
         let pool = getPool();
         
         if(pool.length === 0) { 
-            wt.innerText = isFavMode ? "NO FAVORITES" : "ALL CLEAR"; wt.className = '';
-            document.getElementById('fav-btn').style.display = 'none';
-            document.getElementById('btns').style.display = 'none';
+            wt.innerText = (circle === 4) ? "NO WEAKNESS" : (isFavMode ? "NO FAVORITES" : "ALL CLEAR"); 
+            wt.className = '';
+            document.getElementById('fav-btn').style.display = 'none'; document.getElementById('btns').style.display = 'none';
             document.getElementById('spell-box').style.display = 'none';
             return; 
         }
@@ -493,25 +443,24 @@
         document.getElementById('fav-btn').style.color = item.fav ? "var(--blue)" : "#5c6370";
         document.getElementById('fav-btn').style.display = 'block';
         
-        document.getElementById('btns').style.display = 'none';
-        document.getElementById('spell-box').style.display = 'none';
+        document.getElementById('btns').style.display = 'none'; document.getElementById('spell-box').style.display = 'none';
 
         if(circle === 1 || circle === 2) {
-            wt.innerText = circle === 1 ? item.w : item.d;
-            wt.className = ''; 
-            document.getElementById('hint-text').innerText = circle === 1 ? "C1: Identify" : "C2: Recall";
+            wt.innerText = circle === 1 ? item.w : item.d; wt.className = ''; 
+            document.getElementById('hint-text').innerText = circle === 1 ? "// C1: IDENTIFY" : "// C2: RECALL";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(circle === 1 ? item.d : item.w, circle === 1 ? 'd' : 'w', p.data);
-        } else if(circle === 3) {
-            wt.innerText = item.d;
-            wt.className = '';
-            document.getElementById('hint-text').innerText = "C3: Spelling";
+        } 
+        else if(circle === 3) {
+            wt.innerText = item.d; wt.className = '';
+            document.getElementById('hint-text').innerText = "// C3: SPELLING";
             document.getElementById('spell-box').style.display = 'block';
             document.getElementById('spell-box').value = ""; document.getElementById('spell-box').focus();
-        } else if(circle === 4) {
-            wt.innerText = item.s || "【缺失引导例句，请在原文件中补充】";
-            wt.className = 'text-sentence'; 
-            document.getElementById('hint-text').innerText = "C4: Context (情境填空)";
+        } 
+        else if(circle === 4) {
+            // 🎯 V59 错题歼灭模式 (强制看中文选英文，高压复习)
+            wt.innerText = item.d; wt.className = '';
+            document.getElementById('hint-text').innerText = "// C4: WEAKNESS ELIMINATION (错题特训)";
             document.getElementById('btns').style.display = 'grid';
             renderOpts(item.w, 'w', p.data); 
         }
@@ -521,74 +470,43 @@
     }
 
     function renderOpts(corr, key, allData) {
-        let opts = [corr];
-        let safetyPool = allData.filter(w=>!w.arc);
-        while(opts.length < 4 && opts.length < safetyPool.length) {
-            let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key];
-            if(!opts.includes(r)) opts.push(r);
-        }
+        let opts = [corr]; let safetyPool = allData.filter(w=>!w.arc);
+        while(opts.length < 4 && opts.length < safetyPool.length) { let r = safetyPool[Math.floor(Math.random()*safetyPool.length)][key]; if(!opts.includes(r)) opts.push(r); }
         opts.sort(() => Math.random() - 0.5);
         const area = document.getElementById('btns'); area.innerHTML = '';
         opts.forEach(o => {
             const b = document.createElement('button'); b.className = 'choice'; b.innerText = o;
-            b.onclick = () => { 
-                if(!locked) { 
-                    if(o === corr) { 
-                        b.classList.add('correct'); 
-                        move(true); 
-                    } else { 
-                        b.classList.add('wrong-shake'); 
-                        move(false); 
-                        setTimeout(()=>b.classList.remove('wrong-shake'),400); 
-                    } 
-                } 
-            };
+            b.onclick = () => { if(!locked) { if(o === corr) { b.classList.add('correct'); move(true); } else { b.classList.add('wrong-shake'); move(false); setTimeout(()=>b.classList.remove('wrong-shake'),400); } } };
             area.appendChild(b);
         });
     }
 
     document.getElementById('spell-box').onkeydown = e => { 
-        if(e.key === 'Enter' && !locked) { 
-            let pool = getPool();
-            let expectedWord = cleanWord(pool[curIdx].w).toLowerCase();
-            let typedWord = e.target.value.trim().toLowerCase();
-            if(typedWord === expectedWord) move(true); else move(false); 
-        } 
+        if(e.key === 'Enter' && !locked) { let pool = getPool(); let expectedWord = cleanWord(pool[curIdx].w).toLowerCase(); let typedWord = e.target.value.trim().toLowerCase(); if(typedWord === expectedWord) move(true); else move(false); } 
     };
 
-    function getPool() {
-        let p = projects.find(x => x.id == activeProjectId);
-        if(!p) return [];
-        let pool = p.data.filter(w => !w.arc);
-        if(isFavMode) pool = pool.filter(w => w.fav);
-        return pool;
+    function getPool() { 
+        let p = projects.find(x => x.id == activeProjectId); if(!p) return []; 
+        let pool = p.data.filter(w => !w.arc); 
+        if(isFavMode) pool = pool.filter(w => w.fav); 
+        // 🎯 V59 核心：C4 仅抽取错题次数 >= 3 的死角单词
+        if(circle === 4) pool = pool.filter(w => (w.failCount || 0) >= 3);
+        return pool; 
     }
 
-    function checkEnd() {
-        let pool = getPool();
-        if(curIdx >= pool.length && pool.length > 0) {
-            if(errors === 0) { circle = circle < 4 ? circle + 1 : 1; curIdx = 0; alert("Circle Cleared!"); }
-            else { curIdx = 0; errors = 0; alert("Restarting Circle..."); }
-            syncProgress();
-        }
-        update();
-    }
-
+    function checkEnd() { let pool = getPool(); if(curIdx >= pool.length && pool.length > 0) { if(errors === 0) { circle = circle < 4 ? circle + 1 : 1; curIdx = 0; alert("Circle Cleared!"); } else { curIdx = 0; errors = 0; alert("Restarting Circle..."); } syncProgress(); } update(); }
     function skip() { curIdx++; syncProgress(); update(); }
     function archiveCurrent() { let pool = getPool(); if(pool[curIdx]) { let p = projects.find(x => x.id == activeProjectId); p.data.find(w => w.w === pool[curIdx].w).arc = true; saveAll(); update(); } }
     function toggleFavCurrent() { let pool = getPool(); let p = projects.find(x => x.id == activeProjectId); let word = p.data.find(w => w.w === pool[curIdx].w); word.fav = !word.fav; saveAll(); update(); }
+    
     function restoreWord(w) { let p = projects.find(x => x.id == activeProjectId); p.data.find(x => x.w === w).arc = false; saveAll(); showList('arc'); update(); }
 
     function showList(type) {
         closePanel('right'); document.getElementById('modal-list').style.display = 'flex';
-        let p = projects.find(x => x.id == activeProjectId);
-        let data = (type==='all') ? p.data : p.data.filter(w=>w.arc);
+        let p = projects.find(x => x.id == activeProjectId); let data = (type==='all') ? p.data : p.data.filter(w=>w.arc);
         document.getElementById('list-title').innerText = (type==='all') ? "FULL LIST" : "ARCHIVE";
         document.getElementById('list-content').innerHTML = data.map(w => `
-            <div class="list-row">
-                <div><b>${w.w}</b> ${w.fav ? '<span style="color:var(--blue)">★</span>' : ''}<br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span></div>
-                ${type === 'arc' ? `<button style="background:none; border:none; color:#5c6370; font-size:1.5rem; cursor:pointer;" onclick="restoreWord('${w.w}')">✕</button>` : ''}
-            </div>
+            <div class="list-row"><div><b>${w.w}</b> ${w.fav ? '<span style="color:var(--blue)">★</span>' : ''}<br><span style="color:#5c6370; font-size:0.9rem;">${w.d}</span><br><span style="color:var(--red); font-size:0.7rem;">FAIL COUNT: ${w.failCount || 0}</span></div>${type === 'arc' ? `<button style="background:none; border:none; color:#5c6370; font-size:1.5rem; cursor:pointer;" onclick="restoreWord('${w.w}')">✕</button>` : ''}</div>
         `).join('');
     }
 
@@ -603,10 +521,7 @@
         const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(buf).promise; let lines = [];
         for(let i=1; i<=pdf.numPages; i++) {
             const page = await pdf.getPage(i); const content = await page.getTextContent(); let yMap = {};
-            content.items.forEach(it => {
-                let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5);
-                if (matchedY) yMap[matchedY].push({x: it.transform[4], s: it.str}); else yMap[y] = [{x: it.transform[4], s: it.str}];
-            });
+            content.items.forEach(it => { let y = Math.round(it.transform[5]); let matchedY = Object.keys(yMap).find(k => Math.abs(k - y) <= 5); if (matchedY) yMap[matchedY].push({x: it.transform[4], s: it.str}); else yMap[y] = [{x: it.transform[4], s: it.str}]; });
             Object.keys(yMap).sort((a,b)=>b-a).forEach(y => lines.push(yMap[y].sort((a,b)=>a.x-b.x).map(it=>it.s).join(' ').trim()));
         }
         buildFromFiles(lines.filter(l=>l), title);
@@ -618,9 +533,7 @@
         file.arrayBuffer().then(buf => mammoth.extractRawText({arrayBuffer: buf}).then(r => buildFromFiles(r.value.split('\n').filter(l=>l.trim()), title)));
     }
 </script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
-
 </body>
 </html>
