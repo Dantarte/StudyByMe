@@ -30,7 +30,6 @@
         .brand { font-size: 1rem; font-weight: 200; letter-spacing: 10px; color: #fff; text-transform: uppercase; }
         .icon-btn { color: var(--text); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         
-        /* 文件夹图标回归 */
         .folder-icon { width: 22px; height: 18px; border: 1px solid currentColor; border-top-width: 3px; border-radius: 2px; position: relative; }
         .folder-icon::after { content: ''; position: absolute; top: -5px; left: 0; width: 8px; height: 3px; background: currentColor; border-radius: 1px 1px 0 0; }
 
@@ -57,10 +56,10 @@
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .input-box { background: #050505; border: none; border-bottom: 1px solid var(--border); color: #fff; font-size: 1.4rem; text-align: center; width: 100%; padding: 20px 0; display: none; margin-bottom: 30px; transition: 0.3s; }
+        .input-box { background: #050505; border: none; border-bottom: 1px solid var(--border); color: #fff; font-size: 1.4rem; text-align: center; width: 100%; padding: 20px 0; display: none; margin-bottom: 30px; transition: 0.3s; outline: none; }
+        .input-box:focus { border-bottom-color: var(--blue); }
         .input-box.success-flash { border-bottom-color: var(--green) !important; color: var(--green); }
 
-        /* V65 按钮：极致冷静 */
         .btn-action { background: none; border: 1px solid var(--border); color: #5c6370; padding: 12px 20px; font-size: 0.75rem; border-radius: 2px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: 0.2s; margin-top: 20px; width: fit-content; align-self: center; }
         .btn-action:hover { border-color: var(--red); color: var(--red); }
 
@@ -69,9 +68,12 @@
             background: #050505; border-top: 1px solid var(--border);
             padding-bottom: calc(var(--safe-bottom) + 15px); padding-top: 15px; display: flex; justify-content: center; gap: 80px; z-index: 300;
         }
-        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; padding: 10px; cursor: pointer; }
+        .footer-btn { background: none; border: none; color: #5c6370; font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; padding: 10px; cursor: pointer; transition: 0.2s; }
+        .footer-btn:hover { color: #fff; }
 
-        /* HUD Glitch: 绝不穿透 */
+        .progress { position: fixed; top: calc(var(--safe-top) + 70px); left: 0; width: 100%; height: 2px; background: #000; z-index: 150; }
+        #bar-fill { height: 100%; background: var(--blue); width: 0%; transition: 0.4s; box-shadow: 0 0 10px var(--blue); }
+
         #hud-glitch {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
             background: #050505 !important; border: 1px solid var(--red);
@@ -89,20 +91,18 @@
             100% { transform: translate(-50%, -50%); }
         }
 
-        /* 主控大厅 Mirror Mirror */
         #import-center { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; flex-direction: column; padding: calc(var(--safe-top) + 40px) 25px; overflow-y: auto; align-items: center; }
         .dashboard-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; padding-bottom: 50px;}
         .db-section { background: #050505; border: 1px solid var(--border); border-radius: 4px; padding: 30px; margin-bottom: 25px; }
         .db-sec-title { font-size: 0.7rem; font-weight: bold; letter-spacing: 3px; margin-bottom: 25px; color: var(--blue); text-transform: uppercase; }
         .paste-area { width: 100%; height: 130px; background: #000; color: #fff; border: 1px dashed #3e4451; padding: 15px; font-size: 0.9rem; margin-bottom: 20px; resize: none; font-family: inherit; transition: 0.3s; }
         .paste-area:focus { border-color: var(--blue); outline: none; }
-        .btn-execute { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; font-size: 0.9rem; letter-spacing: 4px; border-radius: 2px; }
-        .btn-return { background: none; color: var(--green); border: 1px solid var(--green); margin-top: 15px; width: 100%; padding: 15px; display: none; letter-spacing: 2px; border-radius: 2px; }
+        .btn-execute { background: var(--blue); color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; font-size: 0.9rem; letter-spacing: 4px; border-radius: 2px; cursor: pointer; }
+        .btn-return { background: none; color: var(--green); border: 1px solid var(--green); margin-top: 15px; width: 100%; padding: 15px; display: none; letter-spacing: 2px; border-radius: 2px; cursor: pointer; }
         
         .archive-card { background: #0a0f14; border: 1px solid var(--border); padding: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .del-btn { color: #5c6370; padding: 10px; font-size: 1.2rem; }
 
-        /* 语言切换开关 */
         .lang-toggle { margin-top: auto; display: flex; gap: 15px; padding-top: 30px; opacity: 0.5; }
         .lang-btn { cursor: pointer; font-size: 0.75rem; letter-spacing: 2px; }
         .lang-btn.active { color: var(--blue); font-weight: bold; opacity: 1; }
@@ -149,7 +149,7 @@
 
 <div id="panel-left" class="side-panel">
     <div class="close-btn" onclick="closePanel('left')">✕</div>
-    <div class="db-sec-title" id="side-settings-title">SETTINGS</div>
+    <div class="db-sec-title">SETTINGS</div>
     <div class="panel-item" onclick="setCircle(1)" id="m1">C1: SCAN</div>
     <div class="panel-item" onclick="setCircle(2)" id="m2">C2: RECALL</div>
     <div class="panel-item" onclick="setCircle(3)" id="m3">C3: ENCODE</div>
@@ -166,16 +166,16 @@
 
 <div id="panel-right" class="side-panel">
     <div class="close-btn" onclick="closePanel('right')">✕</div>
-    <div class="db-sec-title" id="side-library-title">LIBRARY</div>
+    <div class="db-sec-title">LIBRARY</div>
     <div id="projects-container"></div>
 </div>
 
 <div id="import-center">
     <div class="dashboard-content">
-        <div class="brand" style="text-align: center; margin-bottom: 40px; font-size: 2rem;">LexByMe</div>
+        <div class="brand" style="text-align: center; margin-bottom: 40px; font-size: 2.2rem; font-weight: 100;">LexByMe</div>
         <div class="db-section">
             <div class="db-sec-title">INITIATE DATA INTAKE</div>
-            <input type="text" id="new-proj-name" class="input-box" style="display:block; font-size: 1rem; border-bottom:1px solid var(--border); margin-bottom:15px; color:#fff;" placeholder="PROJECT NAME">
+            <input type="text" id="new-proj-name" style="width:100%; background:#000; border:none; border-bottom:1px solid var(--border); padding:15px; margin-bottom:20px; color:#fff;" placeholder="PROJECT NAME">
             <textarea id="raw-text" class="paste-area" placeholder="PASTE RAW DATA HERE...&#10;(WORD \n DEFINITION)"></textarea>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
@@ -210,7 +210,7 @@
     });
     history.pushState(null,null,null);
 
-    function setLang(l) { lang = l; localStorage.setItem('lbm_lang', l); updateUIStrings(); closePanel('left'); }
+    function setLang(l) { lang = l; localStorage.setItem('lbm_lang', l); updateUIStrings(); closePanel('left'); update(); }
     function updateUIStrings() {
         const t = i18n[lang];
         document.getElementById('m1').innerText = t.scan; document.getElementById('m2').innerText = t.recall;
@@ -286,9 +286,11 @@
         });
     }
 
+    function cleanWord(w) { return w.replace(/[\(（].*?[）\)]/g, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ').trim().toLowerCase(); }
+
     document.getElementById('spell-box').onkeydown = e => { 
         if(e.key === 'Enter' && !locked) { 
-            let expected = getPool()[curIdx].w.replace(/[\(（].*?[）\)]/g, ' ').replace(/\b(adj|adv|prep|pron|conj|interj|n|v|vi|vt|c|u)\./gi, ' ').trim().toLowerCase();
+            let expected = cleanWord(getPool()[curIdx].w);
             if(e.target.value.trim().toLowerCase() === expected) move(true); else move(false); 
         } 
     };
@@ -313,7 +315,7 @@
     function setCircle(n) { circle = n; curIdx = 0; closePanel('left'); update(); }
 
     function renderDashboard() {
-        const html = projects.map(p => `<div class="archive-card" onclick="switchProject(${p.id})"><div style="flex:1;"><b style="color:${p.id==activeProjectId?'var(--blue)':'#fff'}">${p.brand || p.title}</b><br><small style="opacity:0.4">${p.data.length} ITEMS</small></div><div class="del-btn" onclick="deleteProject(${p.id},event)">✕</div></div>`).join('');
+        const html = projects.map(p => `<div class="archive-card" onclick="switchProject(${p.id})"><div style="flex:1;"><b style="color:${p.id==activeProjectId?'var(--blue)':'#fff'}">${p.title}</b><br><small style="opacity:0.4">${p.data.length} ITEMS</small></div><div class="del-btn" onclick="deleteProject(${p.id},event)">✕</div></div>`).join('');
         document.getElementById('dashboard-project-list').innerHTML = html; document.getElementById('projects-container').innerHTML = html;
         if(projects.length>0) document.getElementById('existing-projects-area').style.display='block';
         if(activeProjectId) document.getElementById('btn-return-active').style.display='block';
